@@ -13,7 +13,7 @@ const items = [
 export const Sidebar = () => {
   const [active, setActive] = useState(0);
   return (
-    <aside className="fixed left-6 top-1/2 -translate-y-1/2 z-30 hidden lg:block animate-fade-in">
+    <aside className="fixed left-6 top-[calc(50%-300px)] -translate-y-1/2 z-30 hidden lg:block animate-fade-in">
       <div className="glass-strong noise relative rounded-[2rem] p-3 flex flex-col items-center gap-2">
         <div className="relative w-12 h-12 rounded-2xl gradient-hero grid place-items-center mb-2 glow-purple">
           <span className="text-white font-bold text-lg">N</span>
