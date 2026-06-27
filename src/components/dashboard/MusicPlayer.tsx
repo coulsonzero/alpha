@@ -9,6 +9,7 @@ import {
   VolumeX,
   Repeat,
   Music,
+  ListMusic,
 } from "lucide-react";
 
 interface Track {
@@ -54,6 +55,7 @@ export const MusicPlayer = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [showVolume, setShowVolume] = useState(false);
+  const [showPlaylist, setShowPlaylist] = useState(false);
   const [trackIdx, setTrackIdx] = useState(0);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -290,6 +292,75 @@ export const MusicPlayer = () => {
               }}
             />
           </div>
+        </div>
+
+        {/* Playlist */}
+        <div className="relative">
+          <button
+            onClick={() => setShowPlaylist(!showPlaylist)}
+            className={`w-8 h-8 rounded-xl grid place-items-center transition-all duration-200 ${
+              showPlaylist
+                ? "text-neon-purple bg-neon-purple/10"
+                : "text-white/25 hover:text-white/60 hover:bg-white/5"
+            }`}
+          >
+            <ListMusic size={14} />
+          </button>
+
+          {showPlaylist && (
+            <div className="absolute bottom-full right-0 mb-2 w-56 glass-strong rounded-2xl p-2 animate-dropdown-in z-50 overflow-hidden shadow-[0_20px_60px_-10px_rgba(0,0,0,0.8)]">
+              <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider px-3 py-2">
+                Playlist · {PLAYLIST.length} tracks
+              </p>
+              <div className="space-y-0.5 max-h-[240px] overflow-y-auto scrollbar-none">
+                {PLAYLIST.map((t, i) => (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      setTrackIdx(i);
+                      if (!playing) {
+                        setTimeout(() => {
+                          audioRef.current?.play().then(() => setPlaying(true)).catch(() => {});
+                        }, 0);
+                      }
+                      setShowPlaylist(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-xl flex items-center gap-3 transition-all group ${
+                      i === trackIdx
+                        ? "bg-neon-purple/10 border border-neon-purple/20"
+                        : "hover:bg-white/5 border border-transparent"
+                    }`}
+                  >
+                    {/* Track number / playing indicator */}
+                    <div className={`w-6 h-6 rounded-lg grid place-items-center shrink-0 text-[10px] font-bold ${
+                      i === trackIdx
+                        ? "bg-gradient-to-br from-neon-purple to-neon-cyan text-white"
+                        : "bg-white/5 text-white/25"
+                    }`}>
+                      {i === trackIdx && playing ? (
+                        <span className="flex gap-[2px]">
+                          <span className="w-0.5 h-2.5 bg-white rounded-full animate-bounce" style={{ animationDelay: "0ms", animationDuration: "0.6s" }} />
+                          <span className="w-0.5 h-2.5 bg-white rounded-full animate-bounce" style={{ animationDelay: "150ms", animationDuration: "0.6s" }} />
+                          <span className="w-0.5 h-2.5 bg-white rounded-full animate-bounce" style={{ animationDelay: "300ms", animationDuration: "0.6s" }} />
+                        </span>
+                      ) : (
+                        i + 1
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-[11px] font-medium truncate ${i === trackIdx ? "text-white" : "text-white/60"}`}>
+                        {t.title}
+                      </p>
+                      <p className="text-[9px] text-white/25 truncate">{t.artist}</p>
+                    </div>
+                    {i === trackIdx && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan shadow-[0_0_6px_hsl(var(--neon-cyan))] shrink-0" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

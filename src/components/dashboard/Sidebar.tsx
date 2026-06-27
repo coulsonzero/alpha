@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   BarChart3,
@@ -70,7 +71,28 @@ const Logomark = () => (
 );
 
 export const Sidebar = () => {
-  const [active, setActive] = useState(0);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const getActiveFromPath = () => {
+    if (location.pathname === "/chat") return 5; // Messages
+    return 0; // Overview (dashboard)
+  };
+
+  const [active, setActive] = useState(getActiveFromPath);
+
+  useEffect(() => {
+    setActive(getActiveFromPath());
+  }, [location.pathname]);
+
+  const handleClick = (index: number, label: string) => {
+    setActive(index);
+    if (label === "Messages") {
+      navigate("/chat");
+    } else if (location.pathname !== "/") {
+      navigate("/");
+    }
+  };
 
   return (
     <aside className="fixed left-6 top-[calc(50%-300px)] -translate-y-1/2 z-30 hidden lg:block animate-fade-in">
@@ -89,7 +111,7 @@ export const Sidebar = () => {
           return (
             <button
               key={it.label}
-              onClick={() => setActive(i)}
+              onClick={() => handleClick(i, it.label)}
               className={`group relative w-12 h-12 rounded-[50%] grid place-items-center transition-all duration-300 ${
                 isActive
                   ? "bg-gradient-to-br from-neon-purple/30 to-neon-cyan/20 text-white animate-icon-pulse"
