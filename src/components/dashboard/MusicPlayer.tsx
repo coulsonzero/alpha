@@ -294,13 +294,13 @@ export const MusicPlayer = () => {
           </div>
         </div>
 
-        {/* Playlist */}
+        {/* Playlist — between Repeat and Volume */}
         <div className="relative">
           <button
             onClick={() => setShowPlaylist(!showPlaylist)}
             className={`w-8 h-8 rounded-xl grid place-items-center transition-all duration-200 ${
               showPlaylist
-                ? "text-neon-purple bg-neon-purple/10"
+                ? "text-neon-purple bg-neon-purple/10 shadow-[0_0_12px_-3px_hsl(var(--neon-purple)/0.3)]"
                 : "text-white/25 hover:text-white/60 hover:bg-white/5"
             }`}
           >
@@ -308,11 +308,21 @@ export const MusicPlayer = () => {
           </button>
 
           {showPlaylist && (
-            <div className="absolute bottom-full right-0 mb-2 w-56 glass-strong rounded-2xl p-2 animate-dropdown-in z-50 overflow-hidden shadow-[0_20px_60px_-10px_rgba(0,0,0,0.8)]">
-              <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider px-3 py-2">
-                Playlist · {PLAYLIST.length} tracks
-              </p>
-              <div className="space-y-0.5 max-h-[240px] overflow-y-auto scrollbar-none">
+            <div
+              className="absolute top-full right-0 mt-2 w-64 rounded-2xl overflow-hidden z-50"
+              style={{
+                background: "rgba(16,14,24,0.97)",
+                backdropFilter: "blur(48px) saturate(180%)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                boxShadow: "0 24px 64px -12px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.04)",
+                animation: "dropdown-in 0.25s ease-out forwards",
+              }}
+            >
+              <div className="px-4 pt-3 pb-2 border-b border-white/[0.04]">
+                <p className="text-[10px] font-semibold text-white/30 uppercase tracking-[0.15em]">Playlist</p>
+                <p className="text-[11px] text-white/50 mt-0.5">{PLAYLIST.length} tracks · {track.title}</p>
+              </div>
+              <div className="p-2 max-h-[260px] overflow-y-auto scrollbar-none">
                 {PLAYLIST.map((t, i) => (
                   <button
                     key={i}
@@ -325,36 +335,37 @@ export const MusicPlayer = () => {
                       }
                       setShowPlaylist(false);
                     }}
-                    className={`w-full text-left px-3 py-2 rounded-xl flex items-center gap-3 transition-all group ${
+                    className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all duration-200 ${
                       i === trackIdx
-                        ? "bg-neon-purple/10 border border-neon-purple/20"
-                        : "hover:bg-white/5 border border-transparent"
+                        ? "bg-gradient-to-r from-neon-purple/12 to-transparent border border-neon-purple/15"
+                        : "hover:bg-white/[0.04] border border-transparent"
                     }`}
                   >
-                    {/* Track number / playing indicator */}
-                    <div className={`w-6 h-6 rounded-lg grid place-items-center shrink-0 text-[10px] font-bold ${
+                    <div className={`w-7 h-7 rounded-xl grid place-items-center shrink-0 text-[10px] font-bold transition-all duration-200 ${
                       i === trackIdx
-                        ? "bg-gradient-to-br from-neon-purple to-neon-cyan text-white"
-                        : "bg-white/5 text-white/25"
+                        ? "bg-gradient-to-br from-neon-purple to-neon-cyan text-white shadow-[0_0_12px_-2px_hsl(var(--neon-purple)/0.4)]"
+                        : "bg-white/[0.04] text-white/20"
                     }`}>
                       {i === trackIdx && playing ? (
-                        <span className="flex gap-[2px]">
+                        <span className="flex gap-[2px] items-center">
                           <span className="w-0.5 h-2.5 bg-white rounded-full animate-bounce" style={{ animationDelay: "0ms", animationDuration: "0.6s" }} />
                           <span className="w-0.5 h-2.5 bg-white rounded-full animate-bounce" style={{ animationDelay: "150ms", animationDuration: "0.6s" }} />
                           <span className="w-0.5 h-2.5 bg-white rounded-full animate-bounce" style={{ animationDelay: "300ms", animationDuration: "0.6s" }} />
                         </span>
                       ) : (
-                        i + 1
+                        String(i + 1).padStart(2, "0")
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-[11px] font-medium truncate ${i === trackIdx ? "text-white" : "text-white/60"}`}>
+                      <p className={`text-[12px] font-medium truncate leading-tight ${
+                        i === trackIdx ? "text-white" : "text-white/60"
+                      }`}>
                         {t.title}
                       </p>
-                      <p className="text-[9px] text-white/25 truncate">{t.artist}</p>
+                      <p className="text-[9px] text-white/20 truncate mt-0.5">{t.artist}</p>
                     </div>
                     {i === trackIdx && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan shadow-[0_0_6px_hsl(var(--neon-cyan))] shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan shadow-[0_0_8px_hsl(var(--neon-cyan)/0.6)] shrink-0" />
                     )}
                   </button>
                 ))}
