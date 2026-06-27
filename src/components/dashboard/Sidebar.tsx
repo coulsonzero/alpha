@@ -21,53 +21,7 @@ const items = [
 ];
 
 const Logomark = () => (
-  <div className="relative w-12 h-12 grid place-items-center">
-    <svg
-      width="40"
-      height="40"
-      viewBox="0 0 40 40"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="drop-shadow-[0_0_12px_hsl(270_95%_65%/0.5)]"
-    >
-      {/* Outer glow ring */}
-      <circle
-        cx="20"
-        cy="20"
-        r="18"
-        stroke="url(#logoGrad)"
-        strokeWidth="1.5"
-        strokeOpacity="0.4"
-      />
-      {/* Inner hexagon */}
-      <path
-        d="M20 6L33 14V26L20 34L7 26V14L20 6Z"
-        fill="url(#logoGrad)"
-        fillOpacity="0.15"
-        stroke="url(#logoGrad)"
-        strokeWidth="1.2"
-        strokeLinejoin="round"
-      />
-      {/* Center diamond */}
-      <path
-        d="M20 12L27 20L20 28L13 20L20 12Z"
-        fill="url(#logoGrad)"
-        fillOpacity="0.8"
-        stroke="white"
-        strokeWidth="0.8"
-        strokeOpacity="0.3"
-      />
-      {/* Center dot */}
-      <circle cx="20" cy="20" r="2.5" fill="white" />
-      <defs>
-        <linearGradient id="logoGrad" x1="0" y1="0" x2="40" y2="40">
-          <stop offset="0%" stopColor="#a855f7" />
-          <stop offset="50%" stopColor="#6366f1" />
-          <stop offset="100%" stopColor="#06b6d4" />
-        </linearGradient>
-      </defs>
-    </svg>
-  </div>
+<div class="relative grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-primary to-secondary shadow-[0_0_24px_hsl(var(--primary)/0.5)]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sparkles h-4 w-4 text-primary-foreground"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path><path d="M20 3v4"></path><path d="M22 5h-4"></path><path d="M4 17v2"></path><path d="M5 18H3"></path></svg></div>
 );
 
 export const Sidebar = () => {

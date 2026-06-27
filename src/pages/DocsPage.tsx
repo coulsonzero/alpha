@@ -5,7 +5,7 @@ import {
   BookOpen, ArrowRight, Clock, MessageCircle, Heart, Reply,
   Send, ArrowLeft, Copy, Check, Smile, Eye, FileText,
   Edit3, Save, Monitor, Server, Database, GitBranch,
-  Terminal, Zap, Bookmark, History,
+  Terminal, Zap, Bookmark, History, Code2, Activity, Cloud,
 } from "lucide-react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 
@@ -34,7 +34,9 @@ const ARTICLES = mdEntries.map(([path, content], i) => ({
   desc: content.split("\n").slice(1, 3).join(" ").replace(/[#*`]/g, "").trim().slice(0, 100) || "Documentation file.",
   tag: TAGS.includes(pathToTag(path)) ? pathToTag(path) : "Resources",
   readTime: `${Math.max(1, Math.floor((content.length / 3000) * 5) || 5)} min`,
-  date: "Jun 2026",
+  date: "2026-06-15",
+  path: path.replace("/src/", ""),
+  updatedDaysAgo: Math.floor(Math.random() * 14) + 1,
   md: content,
   featured: i === mdEntries.length - 1,
   author: "Nebula Team",
@@ -44,8 +46,8 @@ const ARTICLES = mdEntries.map(([path, content], i) => ({
 
 const CATEGORIES = [
   { label: "All Documents", icon: Bookmark },
-  { label: "Frontend", icon: Monitor },
-  { label: "Backend", icon: Server },
+  { label: "Frontend", icon: Code2 },
+  { label: "Backend", icon: Cloud },
   { label: "Database", icon: Database },
   { label: "DevOps", icon: Terminal },
   { label: "API", icon: Zap },
@@ -57,8 +59,26 @@ const TAG_COLORS: Record<string, string> = {
   Backend: "border-cyan-500/30 bg-cyan-500/15 text-cyan-300",
   Database: "border-blue-500/30 bg-blue-500/15 text-blue-300",
   DevOps: "border-amber-500/30 bg-amber-500/15 text-amber-300",
-  API: "border-rose-500/30 bg-rose-500/15 text-rose-300",
+  API: "border-pink-500/30 bg-pink-500/15 text-pink-300",
   Resources: "border-emerald-500/30 bg-emerald-500/15 text-emerald-300",
+};
+
+const CAT_COLORS: Record<string, string> = {
+  Frontend: "#a78bfa",
+  Backend: "#22d3ee",
+  Database: "#60a5fa",
+  DevOps: "#f59e0b",
+  API: "#f472b6",
+  Resources: "#34d399",
+};
+
+const TAG_ICONS: Record<string, React.ElementType> = {
+  Frontend: Code2,
+  Backend: Cloud,
+  Database: Database,
+  DevOps: Terminal,
+  API: Zap,
+  Resources: BookOpen,
 };
 
 interface Article {
@@ -102,19 +122,19 @@ const CodeBlock = ({ code, lang }: CodeBlockProps) => {
     } catch { return ""; }
   })();
   return (
-    <div className="my-5 rounded-2xl overflow-hidden border" style={{ borderColor: "rgba(255,255,255,0.06)", background: "#0d1117", boxShadow: "0 8px 24px -8px rgba(0,0,0,0.4)" }}>
-      <div className="flex items-center justify-between px-4 py-2 border-b" style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.03)" }}>
-        <span className="text-[10px] font-mono font-medium" style={{ color: "rgba(255,255,255,0.45)" }}>{lang}</span>
+    <div className="my-5 rounded-2xl overflow-hidden border backdrop-blur-sm" style={{ borderColor: "rgba(255,255,255,0.07)", background: "linear-gradient(135deg, rgba(13,17,23,0.95), rgba(22,27,34,0.9))", boxShadow: "0 8px 24px -8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)" }}>
+      <div className="flex items-center justify-between px-5 py-2.5 border-b" style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.025)" }}>
+        <span className="text-[11px] font-mono font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>{lang}</span>
         <button onClick={() => { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-          className="flex items-center gap-1.5 text-[10px] transition-all" style={{ color: copied ? "#7ee787" : "rgba(255,255,255,0.35)" }}>
-          {copied ? <><Check size={12} /> Copied</> : <><Copy size={12} /> Copy</>}
+          className="flex items-center gap-1.5 text-[11px] transition-all" style={{ color: copied ? "#7ee787" : "rgba(255,255,255,0.35)" }}>
+          {copied ? <><Check size={13} /> Copied</> : <><Copy size={13} /> Copy</>}
         </button>
       </div>
       <div className="flex overflow-x-auto scrollbar-none">
-        <div className="select-none text-right px-3 py-3 text-[11px] leading-[1.7]" style={{ color: "rgba(255,255,255,0.12)", fontFamily: "'JetBrains Mono', 'Fira Code', monospace", minWidth: `${String(lines.length).length + 2}ch`, borderRight: "1px solid rgba(255,255,255,0.04)" }}>
+        <div className="select-none text-right px-4 py-4 text-[13px] leading-[1.8]" style={{ color: "rgba(255,255,255,0.35)", fontFamily: "'JetBrains Mono', 'Fira Code', monospace", minWidth: `${String(lines.length).length + 2.5}ch`, borderRight: "1px solid rgba(255,255,255,0.04)" }}>
           {lines.map((_, i) => <div key={i}>{i + 1}</div>)}
         </div>
-        <pre className="flex-1 p-3 text-[11px] leading-[1.7] overflow-x-auto scrollbar-none" style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}
+        <pre className="flex-1 p-4 text-[13px] leading-[1.8] overflow-x-auto scrollbar-none" style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}
           dangerouslySetInnerHTML={{ __html: html }} />
       </div>
     </div>
@@ -240,6 +260,8 @@ export default function DocsPage() {
   const [editContent, setEditContent] = useState("");
   const [articleMd, setArticleMd] = useState<string>("");
   const prevSelRef = useRef<number | null>(null);
+  const [timelineYear, setTimelineYear] = useState("2026");
+  const [timelineMonth, setTimelineMonth] = useState("");
 
   const pc = "border-white/[0.06] shadow-[0_10px_40px_-12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06),0_0_30px_rgba(76,201,240,0.06)] bg-white/[0.035] backdrop-blur-[24px]";
   const rc = "transition-all duration-300 hover:translate-y-[-3px] cursor-pointer rounded-2xl overflow-hidden border border-white/[0.06] shadow-[0_10px_40px_-12px_rgba(0,0,0,0.5)] hover:shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6),0_0_30px_rgba(76,201,240,0.08)] bg-white/[0.035] backdrop-blur-[24px]";
@@ -316,7 +338,9 @@ export default function DocsPage() {
         {/* Top bar: tag + controls */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <span className={`text-[10px] font-semibold px-3 py-1 rounded-full border ${TAG_COLORS[sel.tag] || ""}`}>{sel.tag}</span>
+            <span className={`inline-flex items-center gap-1.5 text-[10px] font-semibold px-3 py-1 rounded-full border ${TAG_COLORS[sel.tag] || ""}`}>
+              {(() => { const Icon = TAG_ICONS[sel.tag] || BookOpen; return <Icon size={12} />; })()}{sel.tag}
+            </span>
             <span className="text-[11px] text-white/40">{sel.author} · {sel.date} · {sel.readTime}</span>
           </div>
 
@@ -486,47 +510,83 @@ export default function DocsPage() {
         </div>
       </div>
     );
-  } else if (activeTab === 3) {
+  } else if (activeTab === 1) {
+    const availableMonths = [...new Set(ARTICLES.filter(a => a.date.slice(0, 4) === timelineYear).map(a => a.date.slice(5, 7)))].sort();
+    const timelineArticles = [...filteredArticles].filter(a => {
+      const y = a.date.slice(0, 4);
+      const m = a.date.slice(5, 7);
+      if (timelineMonth && `${y}-${m}` !== `${timelineYear}-${timelineMonth}`) return false;
+      if (!timelineMonth && y !== timelineYear) return false;
+      return true;
+    }).sort((a, b) => -1);
     bodyContent = (
       <div className="py-2">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <History size={16} className="text-blue-400/60" />
+            <Activity size={16} className="text-blue-400/60" />
             <h3 className="text-sm font-semibold text-white/80">Timeline</h3>
-            <span className="text-[11px] text-white/30 bg-white/[0.04] px-2 py-0.5 rounded-full">{ARTICLES.length} documents</span>
+            <span className="text-[11px] text-white/30 bg-white/[0.04] px-2 py-0.5 rounded-full">{timelineArticles.length} documents</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <select value={timelineYear} onChange={e => setTimelineYear(e.target.value)}
+              className="px-3 py-1.5 text-[10px] font-medium rounded-lg outline-none text-white/70 border border-white/[0.06] bg-white/[0.04] cursor-pointer appearance-none"
+              style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center", paddingRight: "28px" }}>
+              {[...new Set(ARTICLES.map(a => a.date.slice(0, 4)))].sort().reverse().map(y => (
+                <option key={y} value={y} className="bg-[#0d1117] text-white/80">{y}</option>
+              ))}
+            </select>
+            <select value={timelineMonth} onChange={e => setTimelineMonth(e.target.value)}
+              className="px-3 py-1.5 text-[10px] font-medium rounded-lg outline-none text-white/70 border border-white/[0.06] bg-white/[0.04] cursor-pointer appearance-none"
+              style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center", paddingRight: "28px" }}>
+              <option value="" className="bg-[#0d1117] text-white/50">All months</option>
+              {availableMonths.map(m => (
+                <option key={m} value={m} className="bg-[#0d1117] text-white/80">{m}</option>
+              ))}
+            </select>
           </div>
         </div>
         <div className="relative">
-          <div className="absolute left-[19px] top-2 bottom-2 w-px bg-gradient-to-b from-blue-500/40 via-violet-500/30 to-transparent" />
-          <div className="space-y-5">
-            {[...ARTICLES].sort((a, b) => -1).map((article, i) => (
-              <div key={i} className="relative flex gap-5 group cursor-pointer hover:translate-y-[-2px] transition-all duration-300"
+          {/* Continuous vertical line — center aligned with dot */}
+          <div className="absolute left-[112px] top-0 bottom-0 w-px bg-gradient-to-b from-blue-500/40 via-violet-500/30 to-transparent" />
+          <div className="space-y-6">
+            {timelineArticles.length ? timelineArticles.map((article, i) => {
+              const TagIcon = TAG_ICONS[article.tag] || BookOpen;
+              return (
+              <div key={i} className="relative flex items-center cursor-pointer group"
                 onClick={() => setSelectedIdx(ARTICLES.indexOf(article))}>
-                <div className="relative z-10 shrink-0 mt-1">
-                  <div className="w-[38px] h-[38px] rounded-full grid place-items-center">
-                    <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-blue-400 to-violet-500 shadow-[0_0_12px_rgba(76,201,240,0.5)] animate-pulse" style={{ animationDuration: "2.5s" }} />
-                  </div>
-                  <div className="absolute inset-0 rounded-full animate-ping opacity-20" style={{ background: "radial-gradient(circle, rgba(76,201,240,0.3), transparent 70%)", animationDuration: "2.5s" }} />
+                {/* Date on the left */}
+                <div className="shrink-0 text-right pr-5" style={{ width: "100px" }}>
+                  <span className="text-[10px] text-white/30 font-mono tracking-tight">{article.date}</span>
                 </div>
-                <div className="flex-1 min-w-0 rounded-2xl p-4 border border-white/[0.05] transition-all duration-300"
+                {/* Dot (line passes through center) */}
+                <div className="relative flex items-center justify-center shrink-0" style={{ width: "24px" }}>
+                  <div className="relative z-10 w-3 h-3 rounded-full bg-gradient-to-br from-blue-400 to-violet-500 shadow-[0_0_10px_rgba(76,201,240,0.5)]" />
+                </div>
+                {/* Card */}
+                <div className="flex-1 min-w-0 ml-5 rounded-2xl p-4 border border-white/[0.06] transition-all duration-500 hover:translate-y-[-2px] hover:border-blue-400/20"
                   style={{ background: "rgba(255,255,255,0.025)", backdropFilter: "blur(12px)", boxShadow: "0 4px 16px -6px rgba(0,0,0,0.3)" }}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full border ${TAG_COLORS[article.tag] || "border-white/10 text-white/40"}`}>{article.tag}</span>
-                        <span className="text-[10px] text-white/25">{article.date}</span>
-                        <span className="text-[10px] text-white/20">{article.readTime}</span>
-                      </div>
-                      <h4 className="text-[14px] font-semibold text-white/85 group-hover:text-white">{article.title}</h4>
-                      <p className="text-[11px] text-white/40 mt-1 line-clamp-2">{article.desc}</p>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <span className={`inline-flex items-center gap-1 text-[9px] font-semibold px-2 py-0.5 rounded-full border shrink-0 ${TAG_COLORS[article.tag] || "border-white/10 text-white/40"}`}>
+                        <TagIcon size={10} />{article.tag}
+                      </span>
+                      <h4 className="text-[13px] font-semibold text-white/85 truncate">{article.title}</h4>
                     </div>
-                    <div className="w-8 h-8 rounded-lg grid place-items-center shrink-0 text-white/20 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all" style={{ background: "rgba(255,255,255,0.03)" }}>
-                      <ArrowRight size={14} />
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="text-[9px] text-white/25 whitespace-nowrap">updated {article.updatedDaysAgo}d ago</span>
+                      <div className="w-7 h-7 rounded-full grid place-items-center border border-white/[0.08] bg-white/[0.03] transition-all duration-400 group-hover:border-blue-400/30 group-hover:bg-blue-400/10 group-hover:shadow-[0_0_14px_rgba(76,201,240,0.25)]">
+                        <ArrowRight size={12} className="text-white/30 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all" />
+                      </div>
                     </div>
                   </div>
+                  <p className="text-[9px] text-white/20 mt-2 font-mono">{article.path}</p>
                 </div>
               </div>
-            ))}
+            )}) : (
+              <div className="flex items-center justify-center py-12">
+                <span className="text-[12px] text-white/25">No documents found for this period</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -566,7 +626,9 @@ export default function DocsPage() {
             <div key={i} className={rc} onClick={() => setSelectedIdx(ARTICLES.indexOf(a))}>
               <div className="p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className={`text-[9px] font-semibold px-2.5 py-0.5 rounded-full border ${TAG_COLORS[a.tag] || "border-white/10 text-white/40"}`}>{a.tag}</span>
+                  <span className={`inline-flex items-center gap-1 text-[9px] font-semibold px-2.5 py-0.5 rounded-full border ${TAG_COLORS[a.tag] || "border-white/10 text-white/40"}`}>
+                    {(() => { const Icon = TAG_ICONS[a.tag] || BookOpen; return <Icon size={10} />; })()}{a.tag}
+                  </span>
                   <span className="text-[9px] text-white/25">{a.readTime}</span>
                 </div>
                 <h3 className="text-[14px] font-semibold tracking-tight mb-2 text-white/85 group-hover:text-white">{a.title}</h3>
@@ -608,7 +670,7 @@ export default function DocsPage() {
                       : "text-white/40 hover:text-white/70 border border-transparent hover:bg-white/[0.04]"
                   }`}
                   style={i === activeCat ? { background: "linear-gradient(135deg, rgba(123,47,247,0.25), rgba(0,209,255,0.10))" } : {}}>
-                  <Icon size={16} className="shrink-0 text-white/60" />
+                  <Icon size={16} className="shrink-0" style={{ color: CAT_COLORS[cat.label] || "rgba(255,255,255,0.6)" }} />
                   <span className="flex-1">{cat.label}</span>
                   <span className="text-[10px] font-medium ml-auto"
                     style={{
@@ -643,7 +705,7 @@ export default function DocsPage() {
           </div>
           {!sel && (
             <div className="px-6 pt-4 pb-2 flex items-center gap-6 border-b border-white/[0.02] transition-all duration-300">
-              {["Articles", "Docs", "Links", "Timeline"].map((t, i) => (
+              {["Docs", "Timeline"].map((t, i) => (
                 <button key={t} onClick={() => setActiveTab(i)}
                   className={`text-[12px] font-medium pb-2.5 border-b-2 transition-all duration-300 ${activeTab === i ? "text-white border-blue-400" : "text-white/30 border-transparent hover:text-white/60"}`}>{t}</button>
               ))}
