@@ -1,84 +1,65 @@
 import { useState, useRef } from "react";
 import {
-  Search, BookOpen, ArrowRight, Clock, MessageCircle, Heart, Reply,
-  Send, ArrowLeft, Copy, Check, Smile, Globe, AtSign, ChevronDown,
+  BookOpen, ArrowRight, Clock, MessageCircle, Heart, Reply,
+  Send, ArrowLeft, Copy, Check, Smile, Eye, FileText,
+  Edit3, Save, Monitor, Server, Database, GitBranch,
+  Terminal, Zap, Bookmark,
 } from "lucide-react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 
-/* ─── Sample markdown ─── */
-const MD_CONTENT = `# Getting Started with Nebula
+/* ─── Import all MD files from src/docs/ ─── */
+const mdModules = import.meta.glob("/src/docs/**/*.md", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
 
-Everything you need to know to build your first dashboard.
-
-## Installation
-
-\`\`\`bash
-npm create nebula@latest my-dashboard
-cd my-dashboard
-npm install
-\`\`\`
-
-## Quick Start
-
-\`\`\`typescript
-import { Dashboard } from "@nebula/core";
-
-const app = new Dashboard({
-  theme: "glass",
-  analytics: true,
-  features: ["realtime"],
-});
-
-app.render("#root");
-\`\`\`
-
-## Core Concepts
-
-### Glassmorphism System
-
-\`\`\`css
-.glass-base {
-  background: rgba(255, 255, 255, 0.035);
-  backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 1.5rem;
+function filenameToTitle(path: string): string {
+  const name = path.split("/").pop()?.replace(/\.md$/, "") || "";
+  return name
+    .replace(/^\d+-/, "")
+    .replace(/[-_]/g, " ")
+    .replace(/\b\w/g, c => c.toUpperCase());
 }
-\`\`\`
 
-## API Reference
+function pathToTag(path: string): string {
+  const parts = path.split("/");
+  const folderIdx = parts.indexOf("docs") + 1;
+  return parts[folderIdx] || "Resources";
+}
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| \`theme\` | string | "glass" | Visual theme |
-| \`analytics\` | boolean | false | Enable analytics |
-| \`features\` | string[] | [] | Feature flags |
+const TAGS = ["Frontend", "Backend", "Database", "DevOps", "API", "Resources"];
 
-## Events
+const mdEntries = Object.entries(mdModules);
+const ARTICLES = mdEntries.map(([path, content], i) => ({
+  title: filenameToTitle(path),
+  desc: content.split("\n").slice(1, 3).join(" ").replace(/[#*`]/g, "").trim().slice(0, 100) || "Documentation file.",
+  tag: TAGS.includes(pathToTag(path)) ? pathToTag(path) : "Resources",
+  readTime: `${Math.max(1, Math.floor((content.length / 3000) * 5) || 5)} min`,
+  date: "Jun 2026",
+  md: content,
+  featured: i === mdEntries.length - 1,
+  author: "Nebula Team",
+  avatar: "NT",
+  comments: Math.floor(Math.random() * 20),
+}));
 
-\`\`\`typescript
-dashboard.on("ready", () => {
-  console.log("Dashboard is ready!");
-});
-\`\`\``;
-
-const CATEGORIES = ["frontend", "backend", "database", "DevOps"];
-
-const TAG_COLORS: Record<string, string> = {
-  API: "border-cyan-500/20 bg-cyan-500/10 text-cyan-300",
-  Blog: "border-violet-500/20 bg-violet-500/10 text-violet-300",
-  Guide: "border-emerald-500/20 bg-emerald-500/10 text-emerald-300",
-  Tutorial: "border-amber-500/20 bg-amber-500/10 text-amber-300",
-};
-
-const ARTICLES = [
-  { title: "Getting Started with Nebula", desc: "Build your first dashboard in under 10 minutes.", tag: "Guide", readTime: "5 min", date: "Jun 24, 2026", md: MD_CONTENT, featured: true, author: "Alex Morgan", avatar: "AM", comments: 12 },
-  { title: "Building Real-Time Analytics Pipelines", desc: "Architect streaming data pipelines with WebSocket ingestion.", tag: "Tutorial", readTime: "12 min", date: "Jun 22, 2026", md: "## Real-Time Pipelines\n\n### Overview\n\n```typescript\nconst pipeline = new Pipeline({\n  source: \"kafka\",\n  transform: (e) => ({ ...e, ts: Date.now() }),\n});\n```", author: "Sarah Chen", avatar: "SC", comments: 8 },
-  { title: "API Reference: Data Sources", desc: "Connect external data sources to your workspace.", tag: "API", readTime: "8 min", date: "Jun 20, 2026", md: "## API Reference\n\n### GET /api/sources\n\n```json\n{\n  \"id\": \"src_123\",\n  \"name\": \"Production DB\",\n  \"type\": \"postgresql\"\n}\n```", author: "Marcus Webb", avatar: "MW", comments: 4 },
-  { title: "Advanced Glassmorphism Techniques", desc: "Layered blur, dynamic lighting, and premium material design.", tag: "Blog", readTime: "7 min", date: "Jun 18, 2026", md: "## Glassmorphism Deep Dive\n\n```css\n.card {\n  background: rgba(255,255,255,0.04);\n  backdrop-filter: blur(32px);\n}\n```", author: "Priya Kapoor", avatar: "PK", comments: 15 },
-  { title: "Optimizing React Performance", desc: "Memoization, virtualization, and bundle splitting.", tag: "Guide", readTime: "10 min", date: "Jun 15, 2026", md: "## Performance\n\n```tsx\nconst MemoizedChart = React.memo(({ data }) => (\n  <Chart data={data} />\n));\n```", author: "James Liu", avatar: "JL", comments: 6 },
+const CATEGORIES = [
+  { label: "All Documents", icon: Bookmark },
+  { label: "Frontend", icon: Monitor },
+  { label: "Backend", icon: Server },
+  { label: "Database", icon: Database },
+  { label: "DevOps", icon: Terminal },
+  { label: "API", icon: Zap },
+  { label: "Resources", icon: BookOpen },
 ];
 
-interface Comment {
+const TAG_COLORS: Record<string, string> = {
+  Frontend: "border-violet-500/30 bg-violet-500/15 text-violet-300",
+  Backend: "border-cyan-500/30 bg-cyan-500/15 text-cyan-300",
+  Database: "border-blue-500/30 bg-blue-500/15 text-blue-300",
+  DevOps: "border-amber-500/30 bg-amber-500/15 text-amber-300",
+  API: "border-rose-500/30 bg-rose-500/15 text-rose-300",
+  Resources: "border-emerald-500/30 bg-emerald-500/15 text-emerald-300",
+};
+
+interface Article {
   id: number; name: string; website: string; avatar: string; time: string;
   content: string; likes: number; liked?: boolean;
   parentId: number | null; replies?: Comment[];
@@ -136,14 +117,19 @@ const CodeBlock = ({ code, lang }: CodeBlockProps) => {
 
 /* ─── Mini MD renderer ─── */
 function MiniMd(text: string) {
-  return text
-    .split(/(?=\n|$)/).map((part, i) => {
-      let html = part
-        .replace(/\*\*(.+?)\*\*/g, '<strong style="color:rgba(255,255,255,0.9)">$1</strong>')
-        .replace(/_(.+?)_/g, '<em style="color:rgba(255,255,255,0.6)">$1</em>')
-        .replace(/`(.+?)`/g, '<code style="color:#a5d6ff;background:rgba(255,255,255,0.06);padding:1px 4px;border-radius:4px;font-size:inherit">$1</code>');
-      return <span key={i} dangerouslySetInnerHTML={{ __html: html }} />;
-    });
+  const html = text
+    .replace(/^### (.+)$/gm, '<div class="text-sm font-semibold text-white/80 mt-3 mb-1">$1</div>')
+    .replace(/^## (.+)$/gm, '<div class="text-base font-bold text-white/85 mt-4 mb-2">$1</div>')
+    .replace(/^# (.+)$/gm, '<div class="text-lg font-bold text-white mt-4 mb-2">$1</div>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong style="color:rgba(255,255,255,0.92)">$1</strong>')
+    .replace(/_(.+?)_/g, '<em style="color:rgba(255,255,255,0.6)">$1</em>')
+    .replace(/~~(.+?)~~/g, '<del style="color:rgba(255,255,255,0.35)">$1</del>')
+    .replace(/`(.+?)`/g, '<code style="color:#a5d6ff;background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px;font-size:inherit">$1</code>')
+    .replace(/> (.+)/g, '<div style="border-left:2px solid rgba(76,201,240,0.3);padding-left:12px;color:rgba(255,255,255,0.55);margin:4px 0">$1</div>')
+    .replace(/^[\s]*[-*][\s]+(.+)/gm, '<div style="display:flex;gap:6px;color:rgba(255,255,255,0.6);padding:1px 0"><span style="color:rgba(76,201,240,0.5)">•</span><span>$1</span></div>')
+    .replace(/\n{2,}/g, '<div class="h-2"></div>')
+    .replace(/\n/g, '<br />');
+  return <span dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
 /* ─── Markdown Renderer ─── */
@@ -208,12 +194,38 @@ export default function DocsPage() {
   const [showReplyEmoji, setShowReplyEmoji] = useState<number | null>(null);
   const commentEndRef = useRef<HTMLDivElement>(null);
 
+  // Preview/Raw/Edit states
+  const [viewMode, setViewMode] = useState<"preview" | "raw">("preview");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState("");
+  const [articleMd, setArticleMd] = useState<string>("");
+  const prevSelRef = useRef<number | null>(null);
+
   const pc = "border-white/[0.06] shadow-[0_10px_40px_-12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06),0_0_30px_rgba(76,201,240,0.06)] bg-white/[0.035] backdrop-blur-[24px]";
   const rc = "transition-all duration-300 hover:translate-y-[-3px] cursor-pointer rounded-2xl overflow-hidden border border-white/[0.06] shadow-[0_10px_40px_-12px_rgba(0,0,0,0.5)] hover:shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6),0_0_30px_rgba(76,201,240,0.08)] bg-white/[0.035] backdrop-blur-[24px]";
   const ic = "w-full rounded-xl px-3.5 py-2.5 text-[12px] outline-none placeholder:text-white/15 text-white/70 border border-white/[0.06] bg-white/[0.04] focus:border-blue-400/20 transition-colors";
 
   const sel = selectedIdx !== null ? ARTICLES[selectedIdx] : null;
   const featured = ARTICLES.find(a => a.featured);
+
+  // Compute per-category counts from ARTICLES
+  const catCounts = CATEGORIES.map(cat =>
+    cat.label === "All Documents" ? ARTICLES.length : ARTICLES.filter(a => a.tag === cat.label).length
+  );
+
+  // Filter articles by active category
+  const filteredArticles = activeCat === 0
+    ? ARTICLES
+    : ARTICLES.filter(a => a.tag === CATEGORIES[activeCat].label);
+
+  // Init edit/article state when switching articles
+  if (sel && selectedIdx !== prevSelRef.current) {
+    prevSelRef.current = selectedIdx;
+    setEditContent(sel.md || "");
+    setArticleMd(sel.md || "");
+    setViewMode("preview");
+    setIsEditing(false);
+  }
 
   const toggleLike = (id: number) => {
     setComments(prev => prev.map(c => c.id === id || c.replies?.some(r => r.id === id) ? c : c));
@@ -250,11 +262,6 @@ export default function DocsPage() {
     setReplyText(""); setReplyTo(null);
   };
 
-  const filtered = ARTICLES.filter(a =>
-    a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    a.desc.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden"
       style={{ background: "radial-gradient(circle at 20% 20%, rgba(123,47,247,0.18), transparent 30%), radial-gradient(circle at 70% 60%, rgba(76,201,240,0.12), transparent 35%), linear-gradient(135deg, #050816 0%, #090B14 35%, #0A1020 100%)", padding: "36px" }}>
@@ -264,27 +271,43 @@ export default function DocsPage() {
       <Sidebar />
       <div className="relative z-10 w-full max-w-[1600px] h-[calc(100vh-72px)] flex ml-24">
         {/* ═══ Left Nav ═══ */}
-        <div className={`w-[180px] shrink-0 flex flex-col h-full rounded-l-[28px] overflow-hidden ${pc}`} style={{ borderRight: "1px solid rgba(255,255,255,0.04)" }}>
+        <div className={`w-[220px] shrink-0 flex flex-col h-full rounded-l-[28px] overflow-hidden ${pc}`} style={{ borderRight: "1px solid rgba(255,255,255,0.04)" }}>
           <div className="p-5 border-b border-white/[0.04]">
             <p className="text-[9px] font-semibold text-blue-400/60 uppercase tracking-[0.3em]">Browse</p>
             <h3 className="text-sm font-bold tracking-tight mt-1.5 text-white/90">Docs Hub</h3>
           </div>
           <div className="flex-1 overflow-y-auto scrollbar-none p-3 space-y-1">
-            {CATEGORIES.map((c, i) => (
-              <button key={c} onClick={() => { setActiveCat(i); setSelectedIdx(null); }}
-                className={`w-full text-left px-3 py-2.5 rounded-xl text-[12px] font-medium transition-all duration-300 ${i === activeCat ? "text-white border border-blue-400/15" : "text-white/40 hover:text-white/70 border border-transparent hover:bg-white/[0.04]"}`}
-                style={i === activeCat ? { background: "linear-gradient(135deg, rgba(123,47,247,0.25), rgba(0,209,255,0.10))" } : {}}>{c}</button>
-            ))}
+            {CATEGORIES.map((cat, i) => {
+              const Icon = cat.icon;
+              return (
+                <button key={cat.label} onClick={() => { setActiveCat(i); setSelectedIdx(null); }}
+                  className={`w-full text-left px-3 py-2.5 rounded-xl text-[12px] font-medium transition-all duration-300 flex items-center gap-3 ${
+                    i === activeCat
+                      ? "text-white border border-blue-400/15"
+                      : "text-white/40 hover:text-white/70 border border-transparent hover:bg-white/[0.04]"
+                  }`}
+                  style={i === activeCat ? { background: "linear-gradient(135deg, rgba(123,47,247,0.25), rgba(0,209,255,0.10))" } : {}}>
+                  <Icon size={16} className="shrink-0 text-white/60" />
+                  <span className="flex-1">{cat.label}</span>
+                  <span className="text-[10px] font-medium ml-auto"
+                    style={{
+                      color: i === activeCat ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.2)",
+                    }}>
+                    {catCounts[i]}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* ═══ Center ═══ */}
         <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden"
           style={{ background: "rgba(255,255,255,0.02)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(255,255,255,0.05)", borderBottom: "1px solid rgba(255,255,255,0.05)", borderRight: "1px solid rgba(255,255,255,0.04)", boxShadow: "0 10px 40px -12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)" }}>
-          {/* Header */}
+          {/* Header — no search bar */}
           <div className="px-6 py-4 border-b border-white/[0.03] flex items-center gap-4 shrink-0" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.02), transparent)" }}>
             {sel && (
-              <button onClick={() => setSelectedIdx(null)}
+              <button onClick={() => { setSelectedIdx(null); }}
                 className="w-8 h-8 rounded-full grid place-items-center transition-all duration-200 hover:scale-105 active:scale-95"
                 style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(255,255,255,0.1)" }}>
                 <ArrowLeft size={14} className="text-white/80" />
@@ -296,31 +319,95 @@ export default function DocsPage() {
                 {sel ? sel.title : "Docs Hub"}
               </h1>
             </div>
-            <div className="relative w-72">
-              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-400/40" />
-              <input placeholder="Search..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                className="w-full h-10 rounded-full pl-10 pr-4 text-[12px] outline-none placeholder:text-white/15 text-white/80"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }} />
-            </div>
           </div>
 
-          {/* Tabs */}
-          <div className="px-6 pt-4 pb-2 flex items-center gap-6 border-b border-white/[0.02]">
-            {["Articles", "Docs", "Links"].map((t, i) => (
-              <button key={t} onClick={() => setActiveTab(i)}
-                className={`text-[12px] font-medium pb-2.5 border-b-2 transition-all duration-300 ${activeTab === i ? "text-white border-blue-400" : "text-white/30 border-transparent hover:text-white/60"}`}>{t}</button>
-            ))}
-          </div>
+          {/* Tabs — hidden when reading article */}
+          {!sel && (
+            <div className="px-6 pt-4 pb-2 flex items-center gap-6 border-b border-white/[0.02] transition-all duration-300">
+              {["Articles", "Docs", "Links"].map((t, i) => (
+                <button key={t} onClick={() => setActiveTab(i)}
+                  className={`text-[12px] font-medium pb-2.5 border-b-2 transition-all duration-300 ${activeTab === i ? "text-white border-blue-400" : "text-white/30 border-transparent hover:text-white/60"}`}>{t}</button>
+              ))}
+            </div>
+          )}
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto scrollbar-none px-6 py-5 space-y-5">
             {sel ? (
               <div className="max-w-3xl">
-                <div className="mb-6 flex items-center gap-3">
-                  <span className={`text-[10px] font-semibold px-3 py-1 rounded-full border ${TAG_COLORS[sel.tag] || ""}`}>{sel.tag}</span>
-                  <span className="text-[11px] text-white/40">{sel.author} · {sel.date} · {sel.readTime}</span>
+                {/* Top bar: tag + controls */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <span className={`text-[10px] font-semibold px-3 py-1 rounded-full border ${TAG_COLORS[sel.tag] || ""}`}>{sel.tag}</span>
+                    <span className="text-[11px] text-white/40">{sel.author} · {sel.date} · {sel.readTime}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {/* Preview / Raw toggle */}
+                    <div className="flex rounded-xl p-0.5 gap-0.5" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                      <button
+                        onClick={() => { setViewMode("preview"); if (!isEditing) setArticleMd(editContent); }}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all duration-200 flex items-center gap-1.5 ${
+                          viewMode === "preview"
+                            ? "text-white shadow-[0_0_15px_rgba(76,201,240,0.2)] border border-blue-400/20"
+                            : "text-white/40 hover:text-white/70"
+                        }`}
+                        style={viewMode === "preview" ? { background: "linear-gradient(135deg, rgba(76,201,240,0.2), rgba(123,47,247,0.12))" } : {}}>
+                        <Eye size={12} /> Preview
+                      </button>
+                      <button
+                        onClick={() => setViewMode("raw")}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all duration-200 flex items-center gap-1.5 ${
+                          viewMode === "raw"
+                            ? "text-white shadow-[0_0_15px_rgba(76,201,240,0.2)] border border-blue-400/20"
+                            : "text-white/40 hover:text-white/70"
+                        }`}
+                        style={viewMode === "raw" ? { background: "linear-gradient(135deg, rgba(76,201,240,0.2), rgba(123,47,247,0.12))" } : {}}>
+                        <FileText size={12} /> Raw
+                      </button>
+                    </div>
+
+                    {/* Edit / Save */}
+                    {viewMode === "raw" && !isEditing && (
+                      <button
+                        onClick={() => { setIsEditing(true); setEditContent(articleMd); }}
+                        className="px-3 py-1.5 rounded-lg text-[10px] font-medium text-white/60 hover:text-white border border-white/[0.06] hover:border-blue-400/20 transition-all flex items-center gap-1.5"
+                        style={{ background: "rgba(255,255,255,0.03)" }}>
+                        <Edit3 size={12} /> Edit
+                      </button>
+                    )}
+                    {isEditing && (
+                      <button
+                        onClick={() => { setArticleMd(editContent); setIsEditing(false); setViewMode("preview"); }}
+                        className="px-3 py-1.5 rounded-lg text-[10px] font-semibold text-white transition-all flex items-center gap-1.5"
+                        style={{ background: "linear-gradient(135deg, rgba(76,201,240,0.25), rgba(123,47,247,0.2))", border: "1px solid rgba(76,201,240,0.2)" }}>
+                        <Save size={12} /> Save
+                      </button>
+                    )}
+                  </div>
                 </div>
-                {renderMarkdown(sel.md || "")}
+
+                {/* Render area */}
+                <div className="transition-all duration-300">
+                  {viewMode === "preview" ? (
+                    renderMarkdown(articleMd || sel.md || "")
+                  ) : (
+                    <div className="rounded-2xl overflow-hidden border" style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.25)" }}>
+                      {isEditing ? (
+                        <textarea
+                          value={editContent}
+                          onChange={e => setEditContent(e.target.value)}
+                          className="w-full min-h-[400px] p-5 text-[13px] leading-[1.7] outline-none resize-none scrollbar-none"
+                          style={{ background: "transparent", color: "rgba(255,255,255,0.8)", fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}
+                        />
+                      ) : (
+                        <pre className="p-5 text-[13px] leading-[1.7] overflow-x-auto scrollbar-none" style={{ color: "rgba(255,255,255,0.7)", fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}>
+                          {articleMd || sel.md}
+                        </pre>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 {/* Comments */}
                 <div className="mt-10 pt-6 border-t border-white/[0.04]">
@@ -424,7 +511,7 @@ export default function DocsPage() {
               </div>
             ) : (
               <>
-                {featured && (
+                {featured && activeCat === 0 && (
                   <div className="relative rounded-2xl overflow-hidden group cursor-pointer"
                     style={{ background: "linear-gradient(135deg, rgba(76,201,240,0.6), rgba(123,47,247,0.45))", boxShadow: "0 20px 60px -12px rgba(76,201,240,0.25), inset 0 1px 0 rgba(255,255,255,0.15)" }}
                     onClick={() => setSelectedIdx(ARTICLES.indexOf(featured))}>
@@ -452,7 +539,7 @@ export default function DocsPage() {
                   </div>
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filtered.slice(featured ? 1 : 0).map((a, i) => (
+                {filteredArticles.map((a, i) => (
                     <div key={i} className={rc} onClick={() => setSelectedIdx(ARTICLES.indexOf(a))}>
                       <div className="p-5">
                         <div className="flex items-center gap-2 mb-3">
