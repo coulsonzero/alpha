@@ -55,8 +55,8 @@ export const TopNav = () => {
         {/* Notification Bell */}
         <button
           ref={bellRef}
-          className="glass glass-hover w-11 h-11 rounded-[50%] grid place-items-center relative active:scale-[0.95] transition-transform"
-          style={{ border: "none" }}
+          className="w-11 h-11 rounded-[50%] grid place-items-center relative active:scale-[0.95] transition-transform"
+          style={{ background: "rgba(255,255,255,0.04)", backdropFilter: "blur(32px)", border: "none" }}
           onClick={() => setNotifOpen(!notifOpen)}
         >
           <Bell size={16} className="text-white/70" />
@@ -64,7 +64,7 @@ export const TopNav = () => {
         </button>
 
         {/* User profile — icon only */}
-        <div className="glass glass-hover w-11 h-11 rounded-[50%] grid place-items-center" style={{ border: "none" }}>
+        <div className="w-11 h-11 rounded-[50%] grid place-items-center" style={{ border: "none" }}>
           <div className="w-9 h-9 rounded-[50%] bg-gradient-to-br from-neon-pink via-neon-purple to-neon-blue grid place-items-center text-xs font-bold">
             AM
           </div>

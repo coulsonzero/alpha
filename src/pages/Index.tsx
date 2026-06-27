@@ -8,7 +8,6 @@ import { PerformanceWidgets } from "@/components/dashboard/PerformanceWidgets";
 import { UserTable } from "@/components/dashboard/UserTable";
 import { StockChart } from "@/components/dashboard/StockChart";
 import { Particles } from "@/components/dashboard/Particles";
-import { MusicPlayer } from "@/components/dashboard/MusicPlayer";
 
 const Index = () => {
   return (
@@ -16,8 +15,7 @@ const Index = () => {
       {/* Background Particles */}
       <Particles />
 
-      {/* Music Player */}
-      <MusicPlayer />
+      {/* Music Player — now rendered in App.tsx */}
 
       {/* Ambient background glow */}
       <div className="pointer-events-none fixed inset-0 z-0">

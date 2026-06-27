@@ -4,10 +4,8 @@ import {
   Pause,
   SkipForward,
   SkipBack,
-  Shuffle,
   Volume2,
   VolumeX,
-  Repeat,
   Music,
   ListMusic,
 } from "lucide-react";
@@ -20,46 +18,44 @@ interface Track {
 
 const PLAYLIST: Track[] = [
   {
-    title: "Ambient Dreams",
-    artist: "SoundHelix",
-    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    title: "Chasing Shadows",
+    artist: "Alicia Branx",
+    src: "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/vHhzAGYH0Ieo4nOPVz82wdBoh2IbGU2uWCPgRoCQ.mp3",
   },
   {
-    title: "Neon Pulse",
-    artist: "SoundHelix",
-    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+    title: "Does She Love You",
+    artist: "Alicia Branx",
+    src: "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/7t3CqMF7ZqBjNnPBb5DZuk4MAp8sQixHNdUfDC5B.mp3",
   },
   {
-    title: "Deep Space",
-    artist: "SoundHelix",
-    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+    title: "I'm Sorry",
+    artist: "Alicia Branx",
+    src: "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/iPl3n3WbbopjCLMXOZyPzw1kQ8kGRf6cqlg2q0EH.mp3",
   },
   {
-    title: "Crystal Rain",
-    artist: "SoundHelix",
-    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+    title: "If Only",
+    artist: "Alicia Branx",
+    src: "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/SbnxqkPzrR93T5l14k4b4GaTIsyFnqKQCJt46yH8.mp3",
   },
   {
-    title: "Midnight Vibes",
-    artist: "SoundHelix",
-    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
+    title: "Sing a Solo",
+    artist: "Alicia Branx",
+    src: "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/lsHF1K7yDnm9E1n9sTHlA8sN1WECjmWEuvOMyWFm.mp3",
   },
 ];
 
 export const MusicPlayer = () => {
   const [playing, setPlaying] = useState(false);
-  const [shuffleOn, setShuffleOn] = useState(false);
-  const [repeatOn, setRepeatOn] = useState(false);
   const [muted, setMuted] = useState(false);
   const [volume, setVolume] = useState(0.7);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [showVolume, setShowVolume] = useState(false);
   const [showPlaylist, setShowPlaylist] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [trackIdx, setTrackIdx] = useState(0);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const track = PLAYLIST[trackIdx];
 
@@ -72,12 +68,8 @@ export const MusicPlayer = () => {
 
     const onLoaded = () => setDuration(audio.duration || 0);
     const onEnded = () => {
-      if (repeatOn) {
-        audio.currentTime = 0;
-        audio.play().catch(() => {});
-      } else {
-        handleNext();
-      }
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
     };
     const onTime = () => setCurrentTime(audio.currentTime);
     const onDur = () => setDuration(audio.duration || 0);
@@ -135,25 +127,12 @@ export const MusicPlayer = () => {
       audio.currentTime = 0;
       return;
     }
-    if (shuffleOn) {
-      const next = Math.floor(Math.random() * PLAYLIST.length);
-      setTrackIdx(next);
-    } else {
-      setTrackIdx((prev) => (prev === 0 ? PLAYLIST.length - 1 : prev - 1));
-    }
-  }, [shuffleOn]);
+    setTrackIdx((prev) => (prev === 0 ? PLAYLIST.length - 1 : prev - 1));
+  }, []);
 
   const handleNext = useCallback(() => {
-    if (shuffleOn) {
-      let next = Math.floor(Math.random() * PLAYLIST.length);
-      if (next === trackIdx && PLAYLIST.length > 1) {
-        next = (next + 1) % PLAYLIST.length;
-      }
-      setTrackIdx(next);
-    } else {
-      setTrackIdx((prev) => (prev + 1) % PLAYLIST.length);
-    }
-  }, [shuffleOn, trackIdx]);
+    setTrackIdx((prev) => (prev + 1) % PLAYLIST.length);
+  }, []);
 
   const formatTime = (s: number) => {
     if (!s || !isFinite(s)) return "0:00";
@@ -174,16 +153,39 @@ export const MusicPlayer = () => {
     }
   };
 
-  return (
-    <div className="fixed left-[calc(50%-230px)] top-6 -translate-x-1/2 z-40 animate-slide-up">
-      <div className="glass-strong noise rounded-2xl px-5 py-2.5 flex items-center gap-5 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.7)]">
-        {/* Album art */}
-        <div className="w-9 h-9 rounded-[50%]
-bg-gradient-to-br from-neon-purple via-neon-pink to-neon-cyan grid place-items-center shrink-0 shadow-[0_0_20px_-5px_hsl(var(--neon-purple)/0.5)]">
+  // collapsed mode
+  if (collapsed) {
+    return (
+      <div style={{ position: "fixed", top: "32px", right: "150px", zIndex: 40, transition: "all 0.5s cubic-bezier(0.22, 1, 0.36, 1)" }}>
+        <button onClick={() => setCollapsed(false)}
+          className="w-11 h-11 rounded-[50%] grid place-items-center"
+          style={{
+            background: "linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04))",
+            backdropFilter: "blur(48px) saturate(200%)",
+            border: "1px solid rgba(255,255,255,0.15)",
+            boxShadow: "0 8px 24px -6px rgba(0,0,0,0.3)",
+            transition: "all 0.5s cubic-bezier(0.22, 1, 0.36, 1)",
+          }}>
           <div className={playing ? "animate-spin-slow" : ""}>
-            <Music size={15} className="text-white/90" />
+            <Music size={16} className="text-white/70" />
           </div>
-        </div>
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ position: "fixed", left: "calc(50% - 230px)", top: "32px", zIndex: 40, transition: "all 0.5s cubic-bezier(0.22, 1, 0.36, 1)" }}>
+      <div className="glass-strong noise rounded-2xl px-5 py-2.5 flex items-center gap-5 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.7)]">
+        {/* Album art — click to collapse */}
+        <button onClick={() => setCollapsed(true)} className="shrink-0 focus:outline-none">
+          <div className="w-9 h-9 rounded-[50%]
+bg-gradient-to-br from-neon-purple via-neon-pink to-neon-cyan grid place-items-center shrink-0 shadow-[0_0_20px_-5px_hsl(var(--neon-purple)/0.5)] hover:opacity-80 transition-opacity">
+            <div className={playing ? "animate-spin-slow" : ""}>
+              <Music size={15} className="text-white/90" />
+            </div>
+          </div>
+        </button>
 
         {/* Track info + progress */}
         <div className="min-w-0 w-40 flex flex-col justify-center">
@@ -207,18 +209,6 @@ bg-gradient-to-br from-neon-purple via-neon-pink to-neon-cyan grid place-items-c
         {/* Controls */}
         <div className="flex items-center gap-1">
           <button
-            onClick={() => setShuffleOn(!shuffleOn)}
-            className={`w-8 h-8 rounded-[50%]
-grid place-items-center transition-all duration-200 ${
-              shuffleOn
-                ? "text-neon-cyan bg-neon-cyan/10 shadow-[0_0_12px_-3px_hsl(var(--neon-cyan)/0.4)]"
-                : "text-white/25 hover:text-white/60 hover:bg-white/5"
-            }`}
-          >
-            <Shuffle size={14} />
-          </button>
-
-          <button
             onClick={handlePrev}
             className="w-8 h-8 rounded-[50%]
 grid place-items-center text-white/25 hover:text-white/60 hover:bg-white/5 transition-all duration-200"
@@ -228,7 +218,15 @@ grid place-items-center text-white/25 hover:text-white/60 hover:bg-white/5 trans
 
           <button
             onClick={togglePlay}
-            className="w-9 h-9 rounded-full bg-gradient-to-br from-neon-purple via-neon-cyan to-neon-blue grid place-items-center shadow-[0_0_25px_-5px_hsl(var(--neon-purple)/0.6)] hover:shadow-[0_0_35px_-5px_hsl(var(--neon-purple)/0.8)] hover:scale-105 active:scale-95 transition-all duration-200 ring-1 ring-white/10"
+            className="w-9 h-9 rounded-full grid place-items-center transition-all duration-200 hover:scale-105 active:scale-95 ring-1 ring-white/10"
+            style={{
+              background: playing
+                ? "linear-gradient(135deg, #a78bfa, #22d3ee, #f472b6)"
+                : "rgba(255,255,255,0.12)",
+              boxShadow: playing
+                ? "0 0 25px -5px rgba(167,139,250,0.6)"
+                : "none",
+            }}
           >
             {playing ? <Pause size={14} fill="white" /> : <Play size={14} fill="white" className="ml-0.5" />}
           </button>
@@ -239,18 +237,6 @@ grid place-items-center text-white/25 hover:text-white/60 hover:bg-white/5 trans
 grid place-items-center text-white/25 hover:text-white/60 hover:bg-white/5 transition-all duration-200"
           >
             <SkipForward size={14} />
-          </button>
-
-          <button
-            onClick={() => setRepeatOn(!repeatOn)}
-            className={`w-8 h-8 rounded-[50%]
-grid place-items-center transition-all duration-200 ${
-              repeatOn
-                ? "text-neon-purple bg-neon-purple/10 shadow-[0_0_12px_-3px_hsl(var(--neon-purple)/0.4)]"
-                : "text-white/25 hover:text-white/60 hover:bg-white/5"
-            }`}
-          >
-            <Repeat size={14} />
           </button>
         </div>
 
@@ -318,16 +304,16 @@ grid place-items-center transition-all duration-200 ${
             <div
               className="absolute top-full right-0 mt-2 w-64 rounded-2xl overflow-hidden z-50"
               style={{
-                background: "rgba(16,14,24,0.97)",
-                backdropFilter: "blur(48px) saturate(180%)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                boxShadow: "0 24px 64px -12px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.04)",
+                background: "linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.65))",
+                backdropFilter: "blur(48px) saturate(200%)",
+                border: "1px solid rgba(255,255,255,0.2)",
+                boxShadow: "0 24px 64px -12px rgba(0,0,0,0.12)",
                 animation: "dropdown-in 0.25s ease-out forwards",
               }}
             >
-              <div className="px-4 pt-3 pb-2 border-b border-white/[0.04]">
-                <p className="text-[10px] font-semibold text-white/30 uppercase tracking-[0.15em]">Playlist</p>
-                <p className="text-[11px] text-white/50 mt-0.5">{PLAYLIST.length} tracks · {track.title}</p>
+              <div className="px-4 pt-3 pb-2 border-b border-black/[0.06]">
+                <p className="text-[10px] font-semibold text-black/40 uppercase tracking-[0.15em]">Playlist</p>
+                <p className="text-[11px] text-black/40 mt-0.5">{PLAYLIST.length} tracks</p>
               </div>
               <div className="p-2 max-h-[260px] overflow-y-auto scrollbar-none">
                 {PLAYLIST.map((t, i) => (
@@ -345,15 +331,15 @@ grid place-items-center transition-all duration-200 ${
                     className={`w-full text-left px-3 py-2.5 rounded-xl
 flex items-center gap-3 transition-all duration-200 ${
                       i === trackIdx
-                        ? "bg-gradient-to-r from-neon-purple/12 to-transparent border border-neon-purple/15"
-                        : "hover:bg-white/[0.04] border border-transparent"
+                        ? "bg-black/[0.06]"
+                        : "hover:bg-black/[0.03]"
                     }`}
                   >
                     <div className={`w-7 h-7 rounded-[50%]
 grid place-items-center shrink-0 text-[10px] font-bold transition-all duration-200 ${
                       i === trackIdx
-                        ? "bg-gradient-to-br from-neon-purple to-neon-cyan text-white shadow-[0_0_12px_-2px_hsl(var(--neon-purple)/0.4)]"
-                        : "bg-white/[0.04] text-white/20"
+                        ? "bg-gradient-to-br from-violet-400 to-cyan-400 text-white"
+                        : "text-black/40 bg-black/[0.04]"
                     }`}>
                       {i === trackIdx && playing ? (
                         <span className="flex gap-[2px] items-center">
@@ -367,14 +353,14 @@ grid place-items-center shrink-0 text-[10px] font-bold transition-all duration-2
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`text-[12px] font-medium truncate leading-tight ${
-                        i === trackIdx ? "text-white" : "text-white/60"
+                        i === trackIdx ? "text-black/90" : "text-black/60"
                       }`}>
                         {t.title}
                       </p>
-                      <p className="text-[9px] text-white/20 truncate mt-0.5">{t.artist}</p>
+                      <p className="text-[9px] text-black/30 truncate mt-0.5">{t.artist}</p>
                     </div>
                     {i === trackIdx && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan shadow-[0_0_8px_hsl(var(--neon-cyan)/0.6)] shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "#22d3ee", boxShadow: "0 0 8px rgba(6,182,212,0.6)" }} />
                     )}
                   </button>
                 ))}

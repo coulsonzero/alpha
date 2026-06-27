@@ -71,8 +71,8 @@ export const Sidebar = () => {
               onClick={() => handleClick(i, it.label)}
               className={`group relative w-10 h-10 rounded-[50%] grid place-items-center transition-all duration-300 ${
                 isActive
-                  ? "bg-gradient-to-br from-neon-purple/30 to-neon-cyan/20 text-white animate-icon-pulse"
-                  : "text-white/50 hover:text-white hover:bg-white/5 hover:scale-[1.08]"
+                  ? "bg-gradient-to-br from-neon-purple/30 to-neon-cyan/20 text-white"
+                  : "text-white/50 hover:text-white hover:bg-white/5"
               }`}
               aria-label={it.label}
               style={{ transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)" }}
@@ -104,7 +104,7 @@ export const Sidebar = () => {
         {[Settings, LifeBuoy].map((Icon, i) => (
           <button
             key={i}
-            className="w-10 h-10 rounded-[50%] grid place-items-center text-white/40 hover:text-white hover:bg-white/5 hover:scale-[1.08] transition-all duration-300"
+            className="w-10 h-10 rounded-[50%] grid place-items-center text-white/40 hover:text-white hover:bg-white/5 transition-all duration-300"
             style={{ transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)" }}
           >
             <Icon size={16} strokeWidth={1.8} />
