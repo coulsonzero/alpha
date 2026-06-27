@@ -87,7 +87,8 @@ export const PerformanceWidgets = () => (
               className="group glass rounded-2xl p-3 flex flex-col items-start gap-2 hover:bg-white/8 active:scale-[0.97] transition-all hover:-translate-y-0.5"
               onClick={() => toast.success(`${a.label}`, { description: "Action triggered successfully" })}
             >
-              <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${a.color} grid place-items-center group-hover:scale-110 transition-transform shadow-lg`}>
+              <div className={`w-9 h-9 rounded-[50%]
+bg-gradient-to-br ${a.color} grid place-items-center group-hover:scale-110 transition-transform shadow-lg`}>
                 <Icon size={14} />
               </div>
               <span className="text-xs font-medium text-left">{a.label}</span>

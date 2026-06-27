@@ -52,14 +52,14 @@ export const Sidebar = () => {
   };
 
   return (
-    <aside className="fixed left-6 top-[calc(50%-300px)] -translate-y-1/2 z-30 hidden lg:block animate-fade-in">
-      <div className="glass-strong noise relative rounded-[2rem] p-3 flex flex-col items-center gap-2">
+    <aside className="fixed left-4 top-[calc(50%-280px)] -translate-y-1/2 z-30 hidden lg:block animate-slide-left">
+      <div className="rounded-[1.5rem] p-2.5 flex flex-col items-center gap-[3px]" style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02))", backdropFilter: "blur(40px) saturate(160%)", boxShadow: "0 30px 80px -20px rgba(0, 0, 0, 0.8), inset 0 1px 0 0 rgba(255,255,255,0.1), inset 0 -1px 0 0 rgba(255,255,255,0.03)" }}>
         {/* Logo */}
-        <div className="mb-2">
+        <div className="mb-1">
           <Logomark />
         </div>
 
-        <div className="w-8 h-px bg-white/10 my-1" />
+        <div className="w-6 h-px bg-white/10 my-[2px]" />
 
         {/* Nav Items */}
         {items.map((it, i) => {
@@ -69,7 +69,7 @@ export const Sidebar = () => {
             <button
               key={it.label}
               onClick={() => handleClick(i, it.label)}
-              className={`group relative w-12 h-12 rounded-[50%] grid place-items-center transition-all duration-300 ${
+              className={`group relative w-10 h-10 rounded-[50%] grid place-items-center transition-all duration-300 ${
                 isActive
                   ? "bg-gradient-to-br from-neon-purple/30 to-neon-cyan/20 text-white animate-icon-pulse"
                   : "text-white/50 hover:text-white hover:bg-white/5 hover:scale-[1.08]"
@@ -79,16 +79,17 @@ export const Sidebar = () => {
             >
               {/* Active indicator bar */}
               {isActive && (
-                <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-gradient-to-b from-neon-purple to-neon-cyan shadow-[0_0_10px_hsl(var(--neon-purple)/0.6)]" />
+                <span className="absolute -left-[7px] top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-gradient-to-b from-neon-purple to-neon-cyan shadow-[0_0_10px_hsl(var(--neon-purple)/0.6)]" />
               )}
-              <Icon size={18} strokeWidth={1.8} />
+              <Icon size={16} strokeWidth={1.8} />
               {/* Tooltip */}
-              <span className="pointer-events-none absolute left-full ml-4 px-3 py-1.5 rounded-xl glass text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <span className="pointer-events-none absolute left-full ml-3 px-3 py-1.5 rounded-[50%] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-[10px]"
+                style={{ background: "rgba(255, 255, 255, 0.04)", backdropFilter: "blur(32px)", color: "rgba(255,255,255,0.7)" }}>
                 {it.label}
               </span>
               {/* Hover glow ring */}
               <span
-                className="absolute inset-0 rounded-[50%] opacity-0 group-hover:opacity-100 transition-opacity duration-300 border border-neon-purple/20"
+                className="absolute inset-0 rounded-[50%] opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 style={{
                   boxShadow: "0 0 15px -3px hsl(var(--neon-purple) / 0.3)",
                 }}
@@ -97,16 +98,16 @@ export const Sidebar = () => {
           );
         })}
 
-        <div className="w-8 h-px bg-white/10 my-1" />
+        <div className="w-6 h-px bg-white/10 my-[2px]" />
 
         {/* Bottom icons */}
         {[Settings, LifeBuoy].map((Icon, i) => (
           <button
             key={i}
-            className="w-12 h-12 rounded-[50%] grid place-items-center text-white/40 hover:text-white hover:bg-white/5 hover:scale-[1.08] transition-all duration-300"
+            className="w-10 h-10 rounded-[50%] grid place-items-center text-white/40 hover:text-white hover:bg-white/5 hover:scale-[1.08] transition-all duration-300"
             style={{ transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)" }}
           >
-            <Icon size={18} strokeWidth={1.8} />
+            <Icon size={16} strokeWidth={1.8} />
           </button>
         ))}
       </div>

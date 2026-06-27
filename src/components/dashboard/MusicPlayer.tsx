@@ -178,7 +178,8 @@ export const MusicPlayer = () => {
     <div className="fixed left-[calc(50%-230px)] top-6 -translate-x-1/2 z-40 animate-slide-up">
       <div className="glass-strong noise rounded-2xl px-5 py-2.5 flex items-center gap-5 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.7)]">
         {/* Album art */}
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-neon-purple via-neon-pink to-neon-cyan grid place-items-center shrink-0 shadow-[0_0_20px_-5px_hsl(var(--neon-purple)/0.5)]">
+        <div className="w-9 h-9 rounded-[50%]
+bg-gradient-to-br from-neon-purple via-neon-pink to-neon-cyan grid place-items-center shrink-0 shadow-[0_0_20px_-5px_hsl(var(--neon-purple)/0.5)]">
           <div className={playing ? "animate-spin-slow" : ""}>
             <Music size={15} className="text-white/90" />
           </div>
@@ -207,7 +208,8 @@ export const MusicPlayer = () => {
         <div className="flex items-center gap-1">
           <button
             onClick={() => setShuffleOn(!shuffleOn)}
-            className={`w-8 h-8 rounded-xl grid place-items-center transition-all duration-200 ${
+            className={`w-8 h-8 rounded-[50%]
+grid place-items-center transition-all duration-200 ${
               shuffleOn
                 ? "text-neon-cyan bg-neon-cyan/10 shadow-[0_0_12px_-3px_hsl(var(--neon-cyan)/0.4)]"
                 : "text-white/25 hover:text-white/60 hover:bg-white/5"
@@ -218,7 +220,8 @@ export const MusicPlayer = () => {
 
           <button
             onClick={handlePrev}
-            className="w-8 h-8 rounded-xl grid place-items-center text-white/25 hover:text-white/60 hover:bg-white/5 transition-all duration-200"
+            className="w-8 h-8 rounded-[50%]
+grid place-items-center text-white/25 hover:text-white/60 hover:bg-white/5 transition-all duration-200"
           >
             <SkipBack size={14} />
           </button>
@@ -232,14 +235,16 @@ export const MusicPlayer = () => {
 
           <button
             onClick={handleNext}
-            className="w-8 h-8 rounded-xl grid place-items-center text-white/25 hover:text-white/60 hover:bg-white/5 transition-all duration-200"
+            className="w-8 h-8 rounded-[50%]
+grid place-items-center text-white/25 hover:text-white/60 hover:bg-white/5 transition-all duration-200"
           >
             <SkipForward size={14} />
           </button>
 
           <button
             onClick={() => setRepeatOn(!repeatOn)}
-            className={`w-8 h-8 rounded-xl grid place-items-center transition-all duration-200 ${
+            className={`w-8 h-8 rounded-[50%]
+grid place-items-center transition-all duration-200 ${
               repeatOn
                 ? "text-neon-purple bg-neon-purple/10 shadow-[0_0_12px_-3px_hsl(var(--neon-purple)/0.4)]"
                 : "text-white/25 hover:text-white/60 hover:bg-white/5"
@@ -257,7 +262,8 @@ export const MusicPlayer = () => {
         >
           <button
             onClick={() => setMuted(!muted)}
-            className="w-8 h-8 rounded-xl grid place-items-center text-white/25 hover:text-white/60 hover:bg-white/5 transition-all duration-200"
+            className="w-8 h-8 rounded-[50%]
+grid place-items-center text-white/25 hover:text-white/60 hover:bg-white/5 transition-all duration-200"
           >
             {muted || volume === 0 ? <VolumeX size={14} /> : <Volume2 size={14} />}
           </button>
@@ -298,7 +304,8 @@ export const MusicPlayer = () => {
         <div className="relative">
           <button
             onClick={() => setShowPlaylist(!showPlaylist)}
-            className={`w-8 h-8 rounded-xl grid place-items-center transition-all duration-200 ${
+            className={`w-8 h-8 rounded-[50%]
+grid place-items-center transition-all duration-200 ${
               showPlaylist
                 ? "text-neon-purple bg-neon-purple/10 shadow-[0_0_12px_-3px_hsl(var(--neon-purple)/0.3)]"
                 : "text-white/25 hover:text-white/60 hover:bg-white/5"
@@ -335,13 +342,15 @@ export const MusicPlayer = () => {
                       }
                       setShowPlaylist(false);
                     }}
-                    className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all duration-200 ${
+                    className={`w-full text-left px-3 py-2.5 rounded-xl
+flex items-center gap-3 transition-all duration-200 ${
                       i === trackIdx
                         ? "bg-gradient-to-r from-neon-purple/12 to-transparent border border-neon-purple/15"
                         : "hover:bg-white/[0.04] border border-transparent"
                     }`}
                   >
-                    <div className={`w-7 h-7 rounded-xl grid place-items-center shrink-0 text-[10px] font-bold transition-all duration-200 ${
+                    <div className={`w-7 h-7 rounded-[50%]
+grid place-items-center shrink-0 text-[10px] font-bold transition-all duration-200 ${
                       i === trackIdx
                         ? "bg-gradient-to-br from-neon-purple to-neon-cyan text-white shadow-[0_0_12px_-2px_hsl(var(--neon-purple)/0.4)]"
                         : "bg-white/[0.04] text-white/20"

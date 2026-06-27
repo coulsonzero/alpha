@@ -63,7 +63,8 @@ export const StatCards = () => (
         >
           <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br ${s.color} opacity-20 blur-2xl`} />
           <div className="relative flex items-start justify-between mb-6">
-            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${s.color} grid place-items-center shadow-lg`}>
+            <div className={`w-10 h-10 rounded-[50%]
+bg-gradient-to-br ${s.color} grid place-items-center shadow-lg`}>
               <Icon size={16} className="text-white" />
             </div>
             <span className="text-[10px] font-bold text-emerald-300 bg-emerald-400/10 border border-emerald-400/20 px-2 py-1 rounded-full">

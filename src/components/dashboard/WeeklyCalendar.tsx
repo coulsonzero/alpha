@@ -61,7 +61,8 @@ export const WeeklyCalendar = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-neon-purple to-neon-cyan grid place-items-center shadow-lg">
+          <div className="w-8 h-8 rounded-[50%]
+bg-gradient-to-br from-neon-purple to-neon-cyan grid place-items-center shadow-lg">
             <Calendar size={14} />
           </div>
           <div>
@@ -153,7 +154,8 @@ export const WeeklyCalendar = () => {
             .map((d, i) => (
               <div
                 key={i}
-                className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors group"
+                className="flex items-center gap-3 p-2 rounded-xl
+hover:bg-white/5 transition-colors group"
               >
                 <div
                   className={`w-8 h-8 rounded-lg grid place-items-center text-xs font-bold shrink-0 ${

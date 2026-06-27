@@ -76,7 +76,8 @@ export const UserTable = ({ className = "" }: UserTableProps) => (
         <span className="text-[10px] text-white/30 bg-white/5 px-2 py-1 rounded-full">
           {users.length} total
         </span>
-        <button className="glass rounded-xl w-8 h-8 grid place-items-center hover:bg-white/10 transition-colors">
+        <button className="glass rounded-xl
+w-8 h-8 grid place-items-center hover:bg-white/10 transition-colors">
           <MoreHorizontal size={14} className="text-white/50" />
         </button>
       </div>
@@ -112,7 +113,8 @@ export const UserTable = ({ className = "" }: UserTableProps) => (
               {/* User */}
               <td className="py-3 pr-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-neon-pink via-neon-purple to-neon-blue grid place-items-center text-[10px] font-bold shrink-0">
+                  <div className="w-8 h-8 rounded-[50%]
+bg-gradient-to-br from-neon-pink via-neon-purple to-neon-blue grid place-items-center text-[10px] font-bold shrink-0">
                     {u.name
                       .split(" ")
                       .map((n) => n[0])

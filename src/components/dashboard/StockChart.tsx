@@ -119,7 +119,8 @@ export const StockChart = ({ className = "" }: { className?: string }) => {
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${isUp ? "from-neon-green to-neon-cyan" : "from-neon-pink to-neon-purple"} grid place-items-center shadow-lg`}>
+            <div className={`w-10 h-10 rounded-[50%]
+bg-gradient-to-br ${isUp ? "from-neon-green to-neon-cyan" : "from-neon-pink to-neon-purple"} grid place-items-center shadow-lg`}>
               {isUp ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
             </div>
             <div>
@@ -149,7 +150,8 @@ export const StockChart = ({ className = "" }: { className?: string }) => {
           <button
             key={p}
             onClick={() => setPeriod(p)}
-            className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+            className={`px-4 py-1.5 rounded-xl
+text-xs font-semibold transition-all ${
               period === p
                 ? "bg-white/10 text-white shadow-inner"
                 : "text-white/40 hover:text-white/80"

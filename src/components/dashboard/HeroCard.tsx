@@ -92,11 +92,11 @@ export const HeroCard = () => {
         {/* Content */}
         <div className="relative p-8 md:p-10 min-h-[280px] flex flex-col justify-between">
           <div className="flex items-start justify-between">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-xs font-medium">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-xs font-medium">
               <Sparkles size={12} /> AI-Powered Insights
             </div>
             <button
-              className="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 grid place-items-center hover:bg-white/25 active:scale-[0.97] transition-all"
+              className="w-11 h-11 rounded-[50%] bg-white/15 backdrop-blur-md grid place-items-center hover:bg-white/25 active:scale-[0.97] transition-all"
               onClick={() => toast("Opening detailed analytics...")}
             >
               <ArrowUpRight size={18} />
@@ -121,7 +121,7 @@ export const HeroCard = () => {
             <div className="flex gap-3">
               <button
                 onClick={handleWatchRecap}
-                className="relative overflow-hidden px-5 py-3 rounded-2xl bg-white text-zinc-900 text-sm font-semibold hover:scale-[1.02] active:scale-[0.97] transition-transform inline-flex items-center gap-2"
+                className="relative overflow-hidden px-5 py-3 rounded-xl bg-white text-zinc-900 text-sm font-semibold hover:scale-[1.02] active:scale-[0.97] transition-transform inline-flex items-center gap-2"
                 onMouseDown={(e) => {
                   const btn = e.currentTarget;
                   const ripple = document.createElement("span");
@@ -139,7 +139,7 @@ export const HeroCard = () => {
               </button>
               <button
                 onClick={handleViewReport}
-                className="relative overflow-hidden px-5 py-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-sm font-semibold hover:bg-white/20 active:scale-[0.97] transition-all"
+                className="relative overflow-hidden px-5 py-3 rounded-xl bg-white/10 backdrop-blur-md text-sm font-semibold hover:bg-white/20 active:scale-[0.97] transition-all"
                 onMouseDown={(e) => {
                   const btn = e.currentTarget;
                   const ripple = document.createElement("span");

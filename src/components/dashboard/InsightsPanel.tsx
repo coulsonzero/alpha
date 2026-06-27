@@ -73,7 +73,8 @@ export const InsightsPanel = () => (
     <CollapsibleCard
       title="AI Suggestion"
       icon={
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-neon-purple to-neon-cyan grid place-items-center animate-pulse-glow">
+        <div className="w-8 h-8 rounded-[50%]
+bg-gradient-to-br from-neon-purple to-neon-cyan grid place-items-center animate-pulse-glow">
           <Sparkles size={14} />
         </div>
       }
@@ -124,7 +125,8 @@ export const InsightsPanel = () => (
           const Icon = a.icon;
           return (
             <div key={i} className="flex items-center gap-3 p-2.5 rounded-2xl hover:bg-white/5 transition-colors group">
-              <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${a.color} grid place-items-center shrink-0 shadow-lg`}>
+              <div className={`w-9 h-9 rounded-[50%]
+bg-gradient-to-br ${a.color} grid place-items-center shrink-0 shadow-lg`}>
                 <Icon size={14} />
               </div>
               <div className="flex-1 min-w-0">
