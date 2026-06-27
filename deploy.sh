@@ -10,13 +10,13 @@ pnpm run build
 cd dist
 
 # 如果是发布到自定义域名
-echo 'blog.coulsonzero.shop'> CNAME
+echo alpha.coulsonzero.shop'> CNAME
 
 git init
 git add -A
-git commit -m 'deploy aurora-dashboard'
+git commit -m 'deploy blog'
 
-git push -f git@github.com:coulsonzero/aurora-dashboard.git main:gh-pages
+git push -f git@github.com:coulsonzero/alpha.git HEAD:gh-pages
 
 cd -
 
