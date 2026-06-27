@@ -187,6 +187,43 @@
     0% { transform: translateY(8px); opacity: 0; }
     100% { transform: translateY(0); opacity: 1; }
   }
+  @keyframes icon-pulse {
+    0%, 100% { box-shadow: 0 0 20px -5px hsla(270, 95%, 60%, 0.5); }
+    50% { box-shadow: 0 0 35px -5px hsla(270, 95%, 60%, 0.85), 0 0 60px -10px hsla(190, 100%, 55%, 0.4); }
+  }
+  @keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  @keyframes light-sweep {
+    0% { left: -50%; }
+    100% { left: 150%; }
+  }
+  @keyframes ripple-anim {
+    to { transform: scale(4); opacity: 0; }
+  }
+  @keyframes press-down {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.97); }
+    100% { transform: scale(1); }
+  }
+  @keyframes ambient-glow {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.1); }
+  }
+  @keyframes dropdown-in {
+    from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes hero-float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+  }
 
   .animate-float-slow { animation: float-slow 7s ease-in-out infinite; }
   .animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
@@ -195,5 +232,32 @@
     background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
     background-size: 200% 100%;
     animation: shimmer 3s infinite;
+  }
+  .animate-icon-pulse { animation: icon-pulse 2.5s ease-in-out infinite; }
+  .animate-gradient-shift {
+    background-size: 200% 200%;
+    animation: gradient-shift 8s ease infinite;
+  }
+  .animate-ripple { animation: ripple-anim 0.6s ease-out forwards; }
+  .animate-press { animation: press-down 0.3s ease; }
+  .animate-ambient-glow { animation: ambient-glow 6s ease-in-out infinite; }
+  .animate-dropdown-in { animation: dropdown-in 0.25s ease-out forwards; }
+  .animate-slide-up { animation: slide-up 0.4s ease forwards; }
+  .animate-hero-float { animation: hero-float 4s ease-in-out infinite; }
+
+  /* 3D Tilt */
+  .tilt-container { perspective: 800px; }
+  .tilt-card {
+    transition: transform 0.1s ease-out, box-shadow 0.3s ease;
+    transform-style: preserve-3d;
+  }
+
+  /* Ripple */
+  .ripple-effect {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(0);
+    pointer-events: none;
   }
 }

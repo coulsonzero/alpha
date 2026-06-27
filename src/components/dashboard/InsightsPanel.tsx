@@ -1,4 +1,5 @@
-import { Sparkles, ArrowUpRight, Globe, CreditCard, UserPlus, MessageCircle } from "lucide-react";
+import { useState, useRef, useCallback } from "react";
+import { Sparkles, ArrowUpRight, Globe, CreditCard, UserPlus, MessageCircle, ChevronDown } from "lucide-react";
 import { WeeklyCalendar } from "@/components/dashboard/WeeklyCalendar";
 
 const activity = [
@@ -14,36 +15,75 @@ const goals = [
   { label: "Retention Rate", value: 92, color: "from-neon-green to-neon-cyan" },
 ];
 
+const CollapsibleCard = ({
+  title,
+  icon,
+  defaultOpen = true,
+  children,
+}: {
+  title: string;
+  icon?: React.ReactNode;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) => {
+  const [open, setOpen] = useState(defaultOpen);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <div className="glass glass-hover noise rounded-3xl overflow-hidden">
+      <button
+        className="w-full flex items-center justify-between p-6 text-left"
+        onClick={() => setOpen(!open)}
+      >
+        <div className="flex items-center gap-3">
+          {icon}
+          <h4 className="text-sm font-semibold">{title}</h4>
+        </div>
+        <ChevronDown
+          size={16}
+          className={`text-white/40 transition-transform duration-300 ${
+            open ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+      <div
+        ref={contentRef}
+        className="overflow-hidden transition-all duration-300"
+        style={{
+          maxHeight: open ? `${contentRef.current?.scrollHeight ?? 1000}px` : "0px",
+          opacity: open ? 1 : 0,
+        }}
+      >
+        <div className="px-6 pb-6">{children}</div>
+      </div>
+    </div>
+  );
+};
+
 export const InsightsPanel = () => (
   <div className="flex flex-col gap-5 animate-fade-in" style={{ animationDelay: "0.4s" }}>
     {/* Weekly Calendar */}
     <WeeklyCalendar />
 
     {/* AI insight */}
-    <div className="glass-strong noise relative rounded-3xl p-6 overflow-hidden">
-      <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full opacity-50 blur-3xl bg-gradient-to-br from-neon-purple to-neon-pink" />
-      <div className="relative">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-neon-purple to-neon-cyan grid place-items-center animate-pulse-glow">
-            <Sparkles size={14} />
-          </div>
-          <p className="text-xs font-semibold tracking-wider uppercase text-white/60">AI Suggestion</p>
+    <CollapsibleCard
+      title="AI Suggestion"
+      icon={
+        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-neon-purple to-neon-cyan grid place-items-center animate-pulse-glow">
+          <Sparkles size={14} />
         </div>
-        <p className="text-base leading-relaxed font-medium mb-4">
-          Your <span className="gradient-text font-semibold">Pro plan</span> is converting 2.4× faster on mobile. Consider doubling spend on iOS ads this week.
-        </p>
-        <button className="inline-flex items-center gap-1.5 text-xs font-semibold text-neon-cyan hover:gap-2.5 transition-all">
-          Apply suggestion <ArrowUpRight size={12} />
-        </button>
-      </div>
-    </div>
+      }
+    >
+      <p className="text-base leading-relaxed font-medium mb-4">
+        Your <span className="gradient-text font-semibold">Pro plan</span> is converting 2.4× faster on mobile. Consider doubling spend on iOS ads this week.
+      </p>
+      <button className="inline-flex items-center gap-1.5 text-xs font-semibold text-neon-cyan hover:gap-2.5 transition-all">
+        Apply suggestion <ArrowUpRight size={12} />
+      </button>
+    </CollapsibleCard>
 
     {/* Goals */}
-    <div className="glass glass-hover noise rounded-3xl p-6">
-      <div className="flex items-center justify-between mb-5">
-        <h4 className="text-sm font-semibold">Quarter Goals</h4>
-        <button className="text-[10px] text-white/40 hover:text-white">View all</button>
-      </div>
+    <CollapsibleCard title="Quarter Goals">
       <div className="space-y-4">
         {goals.map((g) => (
           <div key={g.label}>
@@ -60,12 +100,12 @@ export const InsightsPanel = () => (
           </div>
         ))}
       </div>
-    </div>
+    </CollapsibleCard>
 
     {/* Activity */}
-    <div className="glass glass-hover noise rounded-3xl p-6 flex-1">
-      <div className="flex items-center justify-between mb-4">
-        <h4 className="text-sm font-semibold">Live Activity</h4>
+    <CollapsibleCard
+      title="Live Activity"
+      icon={
         <span className="inline-flex items-center gap-1.5 text-[10px] text-emerald-300 font-medium">
           <span className="relative flex w-1.5 h-1.5">
             <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping" />
@@ -73,7 +113,8 @@ export const InsightsPanel = () => (
           </span>
           Live
         </span>
-      </div>
+      }
+    >
       <div className="space-y-3">
         {activity.map((a, i) => {
           const Icon = a.icon;
@@ -91,6 +132,6 @@ export const InsightsPanel = () => (
           );
         })}
       </div>
-    </div>
+    </CollapsibleCard>
   </div>
 );

@@ -1,4 +1,5 @@
 import { TrendingUp, Users, ShoppingBag, Zap } from "lucide-react";
+import { useTilt } from "@/hooks/useTilt";
 
 const stats = [
   { label: "Revenue", value: "$48,290", delta: "+24.1%", icon: TrendingUp, color: "from-neon-purple to-neon-pink", spark: [4, 8, 5, 9, 7, 12, 10, 14, 11, 17] },
@@ -36,12 +37,30 @@ const Spark = ({ data, color }: { data: number[]; color: string }) => {
   );
 };
 
+const TiltCard = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => {
+  const tilt = useTilt(6);
+  return (
+    <div
+      ref={tilt.ref}
+      onMouseMove={tilt.onMouseMove}
+      onMouseLeave={tilt.onMouseLeave}
+      style={tilt.style}
+      className={className}
+    >
+      {children}
+    </div>
+  );
+};
+
 export const StatCards = () => (
   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in" style={{ animationDelay: "0.2s" }}>
     {stats.map((s, i) => {
       const Icon = s.icon;
       return (
-        <div key={s.label} className="glass glass-hover noise relative rounded-3xl p-5 overflow-hidden">
+        <TiltCard
+          key={s.label}
+          className="glass glass-hover noise relative rounded-3xl p-5 overflow-hidden"
+        >
           <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br ${s.color} opacity-20 blur-2xl`} />
           <div className="relative flex items-start justify-between mb-6">
             <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${s.color} grid place-items-center shadow-lg`}>
@@ -56,7 +75,7 @@ export const StatCards = () => (
             <p className="text-2xl font-bold tracking-tight">{s.value}</p>
             <Spark data={s.spark} color={`c${i}`} />
           </div>
-        </div>
+        </TiltCard>
       );
     })}
   </div>

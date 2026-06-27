@@ -1,4 +1,6 @@
 import { Zap, Headphones, FileText, Calendar } from "lucide-react";
+import { toast } from "sonner";
+import { useTilt } from "@/hooks/useTilt";
 
 const quickActions = [
   { icon: Zap, label: "New Campaign", color: "from-neon-purple to-neon-pink" },
@@ -24,10 +26,25 @@ const ring = (value: number, color: string) => {
   );
 };
 
+const TiltCard = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => {
+  const tilt = useTilt(5);
+  return (
+    <div
+      ref={tilt.ref}
+      onMouseMove={tilt.onMouseMove}
+      onMouseLeave={tilt.onMouseLeave}
+      style={tilt.style}
+      className={className}
+    >
+      {children}
+    </div>
+  );
+};
+
 export const PerformanceWidgets = () => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-in" style={{ animationDelay: "0.5s" }}>
     {/* Performance Ring */}
-    <div className="glass glass-hover noise rounded-3xl p-6 relative overflow-hidden">
+    <TiltCard className="glass glass-hover noise rounded-3xl p-6 relative overflow-hidden">
       <div className="absolute -bottom-10 -right-10 w-40 h-40 rounded-full opacity-30 blur-3xl bg-gradient-to-br from-neon-purple to-neon-cyan" />
       <p className="text-xs text-white/40 font-medium tracking-widest uppercase mb-1">Performance</p>
       <h4 className="text-lg font-semibold mb-4">System Health</h4>
@@ -55,10 +72,10 @@ export const PerformanceWidgets = () => (
           ))}
         </div>
       </div>
-    </div>
+    </TiltCard>
 
     {/* Quick Actions */}
-    <div className="glass glass-hover noise rounded-3xl p-6">
+    <TiltCard className="glass glass-hover noise rounded-3xl p-6">
       <p className="text-xs text-white/40 font-medium tracking-widest uppercase mb-1">Shortcuts</p>
       <h4 className="text-lg font-semibold mb-4">Quick Actions</h4>
       <div className="grid grid-cols-2 gap-2.5">
@@ -67,7 +84,8 @@ export const PerformanceWidgets = () => (
           return (
             <button
               key={a.label}
-              className="group glass rounded-2xl p-3 flex flex-col items-start gap-2 hover:bg-white/8 transition-all hover:-translate-y-0.5"
+              className="group glass rounded-2xl p-3 flex flex-col items-start gap-2 hover:bg-white/8 active:scale-[0.97] transition-all hover:-translate-y-0.5"
+              onClick={() => toast.success(`${a.label}`, { description: "Action triggered successfully" })}
             >
               <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${a.color} grid place-items-center group-hover:scale-110 transition-transform shadow-lg`}>
                 <Icon size={14} />
@@ -77,10 +95,10 @@ export const PerformanceWidgets = () => (
           );
         })}
       </div>
-    </div>
+    </TiltCard>
 
     {/* Top Sources */}
-    <div className="glass glass-hover noise rounded-3xl p-6 relative overflow-hidden">
+    <TiltCard className="glass glass-hover noise rounded-3xl p-6 relative overflow-hidden">
       <p className="text-xs text-white/40 font-medium tracking-widest uppercase mb-1">Traffic</p>
       <h4 className="text-lg font-semibold mb-4">Top Sources</h4>
       <div className="space-y-3">
@@ -101,6 +119,6 @@ export const PerformanceWidgets = () => (
           </div>
         ))}
       </div>
-    </div>
+    </TiltCard>
   </div>
 );
