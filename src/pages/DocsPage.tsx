@@ -5,7 +5,7 @@ import {
   BookOpen, ArrowRight, Clock, MessageCircle, Heart, Reply,
   Send, ArrowLeft, Copy, Check, Smile, Eye, FileText,
   Edit3, Save, Monitor, Server, Database, GitBranch,
-  Terminal, Zap, Bookmark,
+  Terminal, Zap, Bookmark, History,
 } from "lucide-react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 
@@ -309,6 +309,280 @@ export default function DocsPage() {
     setReplyText(""); setReplyTo(null);
   };
 
+  let bodyContent: React.ReactNode;
+  if (sel) {
+    bodyContent = (
+      <div className="max-w-3xl">
+        {/* Top bar: tag + controls */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <span className={`text-[10px] font-semibold px-3 py-1 rounded-full border ${TAG_COLORS[sel.tag] || ""}`}>{sel.tag}</span>
+            <span className="text-[11px] text-white/40">{sel.author} · {sel.date} · {sel.readTime}</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Preview / Raw toggle */}
+            <div className="flex rounded-xl p-0.5 gap-0.5" style={{ background: "rgba(255,255,255,0.04)",border: "1px solid rgba(255,255,255,0.05)" }}>
+              <button
+                onClick={() => { setViewMode("preview"); if (!isEditing) setArticleMd(editContent); }}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all duration-200 flex items-center gap-1.5 ${viewMode === "preview"
+                    ? "text-white shadow-[0_0_15px_rgba(76,201,240,0.2)] border border-blue-400/20"
+                    : "text-white/40 hover:text-white/70"
+                  }`}
+                style={viewMode === "preview" ? { background: "linear-gradient(135deg, rgba(76,201,240,0.2), rgba(123,47,247,0.12))" } : {}}>
+                <Eye size={12} /> Preview
+              </button>
+              <button
+                onClick={() => setViewMode("raw")}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all duration-200 flex items-center gap-1.5 ${viewMode === "raw"
+                    ? "text-white shadow-[0_0_15px_rgba(76,201,240,0.2)] border border-blue-400/20"
+                    : "text-white/40 hover:text-white/70"
+                  }`}
+                style={viewMode === "raw" ? { background: "linear-gradient(135deg, rgba(76,201,240,0.2), rgba(123,47,247,0.12))" } : {}}>
+                <FileText size={12} /> Raw
+              </button>
+            </div>
+
+            {/* Edit / Save */}
+            {viewMode === "raw" && !isEditing && (
+              <button
+                onClick={() => { setIsEditing(true); setEditContent(articleMd); }}
+                className="px-3 py-1.5 rounded-lg text-[10px] font-medium text-white/60 hover:text-white border border-white/[0.06] hover:border-blue-400/20 transition-all flex items-center gap-1.5"
+                style={{ background: "rgba(255,255,255,0.03)" }}>
+                <Edit3 size={12} /> Edit
+              </button>
+            )}
+            {isEditing && (
+              <button
+                onClick={() => { setArticleMd(editContent); setIsEditing(false); setViewMode("preview"); }}
+                className="px-3 py-1.5 rounded-lg text-[10px] font-semibold text-white transition-all flex items-center gap-1.5"
+                style={{ background: "linear-gradient(135deg, rgba(76,201,240,0.25), rgba(123,47,247,0.2))",border: "1px solid rgba(76,201,240,0.2)" }}>
+                <Save size={12} /> Save
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Render area */}
+        <div className="transition-all duration-300">
+          {viewMode === "preview" ? (
+            renderedContent
+          ) : (
+            <div className="rounded-2xl overflow-hidden border" style={{ borderColor: "rgba(255,255,255,0.06)",background: "rgba(0,0,0,0.25)" }}>
+              {isEditing ? (
+                <textarea
+                  value={editContent}
+                  onChange={e => setEditContent(e.target.value)}
+                  className="w-full min-h-[400px] p-5 text-[13px] leading-[1.7] outline-none resize-none scrollbar-none"
+                  style={{ background: "transparent",color: "rgba(255,255,255,0.8)",fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}
+                />
+              ) : (
+                <pre className="p-5 text-[13px] leading-[1.7] overflow-x-auto scrollbar-none" style={{ color: "rgba(255,255,255,0.7)",fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}>
+                  {articleMd || sel.md}
+                </pre>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Comments */}
+        <div className="mt-10 pt-6 border-t border-white/[0.04]">
+          <div className="flex items-center gap-2 mb-6">
+            <MessageCircle size={14} className="text-blue-400/60" />
+            <h3 className="text-sm font-semibold text-white/80">Comments</h3>
+            <span className="text-[11px] text-white/30 bg-white/[0.04] px-2 py-0.5 rounded-full">{comments.length}</span>
+          </div>
+          <div className="space-y-4 mb-6">
+            {comments.map(c => (
+              <div key={c.id}>
+                <div className="rounded-2xl p-4 border border-white/[0.05]" style={{ background: "rgba(255,255,255,0.025)" }}>
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-400 to-cyan-400 grid place-items-center text-[9px] font-bold shrink-0">{c.avatar}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2.5 mb-1.5">
+                        <p className="text-[12px] font-semibold text-white/85">{c.name}</p>
+                        <span className="text-[10px] text-blue-300/60">{c.website}</span>
+                        <span className="text-[10px] text-white/15">·</span>
+                        <span className="text-[10px] text-white/20">{c.time}</span>
+                      </div>
+                      <p className="text-[12px] text-white/60 leading-relaxed">{MiniMd(c.content)}</p>
+                      <div className="flex items-center gap-4 mt-3">
+                        <button onClick={() => toggleLike(c.id)}
+                          className="flex items-center gap-1.5 text-[11px] transition-all" style={{ color: liked.has(c.id) ? "#fb7185" : "rgba(255,255,255,0.3)" }}>
+                          <Heart size={12} fill={liked.has(c.id) ? "#fb7185" : "none"} /> {c.likes + (liked.has(c.id) ? 1 : 0)}
+                        </button>
+                        <button onClick={() => setReplyTo(replyTo === c.id ? null : c.id)}
+                          className="flex items-center gap-1.5 text-white/30 hover:text-blue-400 transition-all text-[11px]"><Reply size={12} /> Reply</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {replyTo === c.id && (
+                  <div className="ml-10 mt-2 relative">
+                    <div className="flex gap-2 animate-slide-up">
+                      <input placeholder="Write a reply..." value={replyText} onChange={e => setReplyText(e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && pubReply(c.id)}
+                        className="flex-1 rounded-xl px-3.5 py-2 text-[12px] outline-none text-white/70 border border-white/[0.06] bg-white/[0.04]" />
+                      <button onClick={() => setShowReplyEmoji(showReplyEmoji === c.id ? null : c.id)}
+                        className="w-8 h-8 rounded-xl grid place-items-center text-white/30 hover:text-white/60 hover:bg-white/[0.04] transition-all"><Smile size={14} /></button>
+                      <button onClick={() => pubReply(c.id)}
+                        className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-violet-500 grid place-items-center shadow-lg hover:scale-105 transition-all"><Send size={12} /></button>
+                    </div>
+                    {showReplyEmoji === c.id && (
+                      <EmojiPop onSelect={e => setReplyText(p => p + e)} onClose={() => setShowReplyEmoji(null)} />
+                    )}
+                  </div>
+                )}
+                {c.replies && c.replies.length > 0 && (
+                  <div className="ml-10 mt-2 space-y-2">
+                    {c.replies.map(r => (
+                      <div key={r.id} className="rounded-xl p-3 border border-white/[0.04]" style={{ background: "rgba(255,255,255,0.02)" }}>
+                        <div className="flex items-start gap-2.5">
+                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-400 to-violet-400 grid place-items-center text-[8px] font-bold shrink-0">{r.avatar}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <p className="text-[11px] font-semibold text-white/80">{r.name}</p>
+                              <span className="text-[9px] text-white/20">{r.time}</span>
+                            </div>
+                            <p className="text-[11px] text-white/55 leading-relaxed">{r.content}</p>
+                            <button onClick={() => { const nid = r.id * 100 + 1; toggleLike(c.id); }}
+                              className="flex items-center gap-1 mt-1.5 text-[10px] transition-all" style={{ color: "rgba(255,255,255,0.25)" }}>
+                              <Heart size={10} /> {r.likes}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Comment Form */}
+          <div className="rounded-2xl p-5 border border-white/[0.05]" style={{ background: "rgba(255,255,255,0.025)" }}>
+            <p className="text-[12px] font-semibold text-white/70 mb-4">Leave a comment</p>
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <input placeholder="Name *" value={form.name} onChange={e => setForm(p => ({ ...p,name: e.target.value }))} className={ic} />
+                <input placeholder="Email" value={form.email} onChange={e => setForm(p => ({ ...p,email: e.target.value }))} className={ic} />
+                <input placeholder="Website" value={form.website} onChange={e => setForm(p => ({ ...p,website: e.target.value }))} className={ic} />
+              </div>
+              <div className="relative">
+                <textarea placeholder="Write your comment... (Markdown supported)" value={form.content}
+                  onChange={e => setForm(p => ({ ...p,content: e.target.value }))} rows={3} className={`${ic} resize-none pr-10`} />
+                <button onClick={() => setShowEmoji(!showEmoji)}
+                  className="absolute right-2.5 bottom-3 w-7 h-7 rounded-lg grid place-items-center text-white/25 hover:text-white/60 transition-all"><Smile size={14} /></button>
+                {showEmoji && <EmojiPop onSelect={e => setForm(p => ({ ...p,content: p.content + e }))} onClose={() => setShowEmoji(false)} />}
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-white/20">Supports **bold**, _italic_, `code`</span>
+                <button onClick={pubComment}
+                  className="px-6 py-2.5 rounded-xl text-[11px] font-semibold text-white bg-gradient-to-r from-blue-500 to-violet-500 hover:shadow-[0_0_20px_rgba(76,201,240,0.3)] transition-all">Post Comment</button>
+              </div>
+            </div>
+          </div>
+          <div ref={commentEndRef} />
+        </div>
+      </div>
+    );
+  } else if (activeTab === 3) {
+    bodyContent = (
+      <div className="py-2">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <History size={16} className="text-blue-400/60" />
+            <h3 className="text-sm font-semibold text-white/80">Timeline</h3>
+            <span className="text-[11px] text-white/30 bg-white/[0.04] px-2 py-0.5 rounded-full">{ARTICLES.length} documents</span>
+          </div>
+        </div>
+        <div className="relative">
+          <div className="absolute left-[19px] top-2 bottom-2 w-px bg-gradient-to-b from-blue-500/40 via-violet-500/30 to-transparent" />
+          <div className="space-y-5">
+            {[...ARTICLES].sort((a, b) => -1).map((article, i) => (
+              <div key={i} className="relative flex gap-5 group cursor-pointer hover:translate-y-[-2px] transition-all duration-300"
+                onClick={() => setSelectedIdx(ARTICLES.indexOf(article))}>
+                <div className="relative z-10 shrink-0 mt-1">
+                  <div className="w-[38px] h-[38px] rounded-full grid place-items-center">
+                    <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-blue-400 to-violet-500 shadow-[0_0_12px_rgba(76,201,240,0.5)] animate-pulse" style={{ animationDuration: "2.5s" }} />
+                  </div>
+                  <div className="absolute inset-0 rounded-full animate-ping opacity-20" style={{ background: "radial-gradient(circle, rgba(76,201,240,0.3), transparent 70%)", animationDuration: "2.5s" }} />
+                </div>
+                <div className="flex-1 min-w-0 rounded-2xl p-4 border border-white/[0.05] transition-all duration-300"
+                  style={{ background: "rgba(255,255,255,0.025)", backdropFilter: "blur(12px)", boxShadow: "0 4px 16px -6px rgba(0,0,0,0.3)" }}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full border ${TAG_COLORS[article.tag] || "border-white/10 text-white/40"}`}>{article.tag}</span>
+                        <span className="text-[10px] text-white/25">{article.date}</span>
+                        <span className="text-[10px] text-white/20">{article.readTime}</span>
+                      </div>
+                      <h4 className="text-[14px] font-semibold text-white/85 group-hover:text-white">{article.title}</h4>
+                      <p className="text-[11px] text-white/40 mt-1 line-clamp-2">{article.desc}</p>
+                    </div>
+                    <div className="w-8 h-8 rounded-lg grid place-items-center shrink-0 text-white/20 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all" style={{ background: "rgba(255,255,255,0.03)" }}>
+                      <ArrowRight size={14} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  } else {
+    bodyContent = (
+      <>
+        {featured && activeCat === 0 && (
+          <div className="relative rounded-2xl overflow-hidden group cursor-pointer"
+            style={{ background: "linear-gradient(135deg, rgba(76,201,240,0.6), rgba(123,47,247,0.45))", boxShadow: "0 20px 60px -12px rgba(76,201,240,0.25), inset 0 1px 0 rgba(255,255,255,0.15)" }}
+            onClick={() => setSelectedIdx(ARTICLES.indexOf(featured))}>
+            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl opacity-50" style={{ background: "radial-gradient(circle, rgba(255,255,255,0.2), transparent 70%)" }} />
+            <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full blur-3xl opacity-40" style={{ background: "radial-gradient(circle, rgba(76,201,240,0.3), transparent 70%)" }} />
+            <div className="relative p-8 flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <span className="text-[10px] font-bold text-white bg-white/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/25">✦ Featured</span>
+                  <span className="text-[10px] text-white/60">{featured.date}</span>
+                  <span className="text-[10px] text-white/40">{featured.readTime}</span>
+                </div>
+                <h2 className="text-3xl font-bold tracking-tight mb-3 text-white leading-[1.08]">{featured.title}</h2>
+                <p className="text-[14px] text-white/75 leading-relaxed max-w-lg">{featured.desc}</p>
+                <div className="flex items-center gap-5 mt-5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-400 to-cyan-300 grid place-items-center text-[9px] font-bold shadow-lg">AM</div>
+                    <span className="text-[12px] text-white/70">{featured.author}</span>
+                  </div>
+                  <span className="text-[11px] text-white/50">{featured.comments} comments</span>
+                </div>
+              </div>
+              <div className="w-28 h-28 rounded-2xl bg-white/10 backdrop-blur-xl grid place-items-center shrink-0 ml-6 border border-white/15"><BookOpen size={32} className="text-white/40" /></div>
+            </div>
+          </div>
+        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredArticles.map((a, i) => (
+            <div key={i} className={rc} onClick={() => setSelectedIdx(ARTICLES.indexOf(a))}>
+              <div className="p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className={`text-[9px] font-semibold px-2.5 py-0.5 rounded-full border ${TAG_COLORS[a.tag] || "border-white/10 text-white/40"}`}>{a.tag}</span>
+                  <span className="text-[9px] text-white/25">{a.readTime}</span>
+                </div>
+                <h3 className="text-[14px] font-semibold tracking-tight mb-2 text-white/85 group-hover:text-white">{a.title}</h3>
+                <p className="text-[12px] text-white/45 leading-relaxed line-clamp-2">{a.desc}</p>
+                <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/[0.03]">
+                  <div className="flex items-center gap-2"><Clock size={11} className="text-white/15" /><span className="text-[10px] text-white/25">{a.date}</span></div>
+                  <ArrowRight size={14} className="text-white/20 group-hover:text-blue-400 transition-all group-hover:translate-x-1" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </>
+    );
+  }
+
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden"
       style={{ background: "radial-gradient(circle at 20% 20%, rgba(123,47,247,0.18), transparent 30%), radial-gradient(circle at 70% 60%, rgba(76,201,240,0.12), transparent 35%), linear-gradient(135deg, #050816 0%, #090B14 35%, #0A1020 100%)", padding: "36px" }}>
@@ -367,247 +641,22 @@ export default function DocsPage() {
               </h1>
             </div>
           </div>
-
-          {/* Tabs — hidden when reading article */}
           {!sel && (
             <div className="px-6 pt-4 pb-2 flex items-center gap-6 border-b border-white/[0.02] transition-all duration-300">
-              {["Articles", "Docs", "Links"].map((t, i) => (
+              {["Articles", "Docs", "Links", "Timeline"].map((t, i) => (
                 <button key={t} onClick={() => setActiveTab(i)}
                   className={`text-[12px] font-medium pb-2.5 border-b-2 transition-all duration-300 ${activeTab === i ? "text-white border-blue-400" : "text-white/30 border-transparent hover:text-white/60"}`}>{t}</button>
               ))}
             </div>
           )}
 
-          {/* Content */}
+
           <div className="flex-1 overflow-y-auto scrollbar-none px-6 py-5 space-y-5">
-            {sel ? (
-              <div className="max-w-3xl">
-                {/* Top bar: tag + controls */}
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <span className={`text-[10px] font-semibold px-3 py-1 rounded-full border ${TAG_COLORS[sel.tag] || ""}`}>{sel.tag}</span>
-                    <span className="text-[11px] text-white/40">{sel.author} · {sel.date} · {sel.readTime}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {/* Preview / Raw toggle */}
-                    <div className="flex rounded-xl p-0.5 gap-0.5" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                      <button
-                        onClick={() => { setViewMode("preview"); if (!isEditing) setArticleMd(editContent); }}
-                        className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all duration-200 flex items-center gap-1.5 ${
-                          viewMode === "preview"
-                            ? "text-white shadow-[0_0_15px_rgba(76,201,240,0.2)] border border-blue-400/20"
-                            : "text-white/40 hover:text-white/70"
-                        }`}
-                        style={viewMode === "preview" ? { background: "linear-gradient(135deg, rgba(76,201,240,0.2), rgba(123,47,247,0.12))" } : {}}>
-                        <Eye size={12} /> Preview
-                      </button>
-                      <button
-                        onClick={() => setViewMode("raw")}
-                        className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all duration-200 flex items-center gap-1.5 ${
-                          viewMode === "raw"
-                            ? "text-white shadow-[0_0_15px_rgba(76,201,240,0.2)] border border-blue-400/20"
-                            : "text-white/40 hover:text-white/70"
-                        }`}
-                        style={viewMode === "raw" ? { background: "linear-gradient(135deg, rgba(76,201,240,0.2), rgba(123,47,247,0.12))" } : {}}>
-                        <FileText size={12} /> Raw
-                      </button>
-                    </div>
-
-                    {/* Edit / Save */}
-                    {viewMode === "raw" && !isEditing && (
-                      <button
-                        onClick={() => { setIsEditing(true); setEditContent(articleMd); }}
-                        className="px-3 py-1.5 rounded-lg text-[10px] font-medium text-white/60 hover:text-white border border-white/[0.06] hover:border-blue-400/20 transition-all flex items-center gap-1.5"
-                        style={{ background: "rgba(255,255,255,0.03)" }}>
-                        <Edit3 size={12} /> Edit
-                      </button>
-                    )}
-                    {isEditing && (
-                      <button
-                        onClick={() => { setArticleMd(editContent); setIsEditing(false); setViewMode("preview"); }}
-                        className="px-3 py-1.5 rounded-lg text-[10px] font-semibold text-white transition-all flex items-center gap-1.5"
-                        style={{ background: "linear-gradient(135deg, rgba(76,201,240,0.25), rgba(123,47,247,0.2))", border: "1px solid rgba(76,201,240,0.2)" }}>
-                        <Save size={12} /> Save
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Render area */}
-                <div className="transition-all duration-300">
-                  {viewMode === "preview" ? (
-                    renderedContent
-                  ) : (
-                    <div className="rounded-2xl overflow-hidden border" style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.25)" }}>
-                      {isEditing ? (
-                        <textarea
-                          value={editContent}
-                          onChange={e => setEditContent(e.target.value)}
-                          className="w-full min-h-[400px] p-5 text-[13px] leading-[1.7] outline-none resize-none scrollbar-none"
-                          style={{ background: "transparent", color: "rgba(255,255,255,0.8)", fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}
-                        />
-                      ) : (
-                        <pre className="p-5 text-[13px] leading-[1.7] overflow-x-auto scrollbar-none" style={{ color: "rgba(255,255,255,0.7)", fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}>
-                          {articleMd || sel.md}
-                        </pre>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Comments */}
-                <div className="mt-10 pt-6 border-t border-white/[0.04]">
-                  <div className="flex items-center gap-2 mb-6">
-                    <MessageCircle size={14} className="text-blue-400/60" />
-                    <h3 className="text-sm font-semibold text-white/80">Comments</h3>
-                    <span className="text-[11px] text-white/30 bg-white/[0.04] px-2 py-0.5 rounded-full">{comments.length}</span>
-                  </div>
-                  <div className="space-y-4 mb-6">
-                    {comments.map(c => (
-                      <div key={c.id}>
-                        <div className="rounded-2xl p-4 border border-white/[0.05]" style={{ background: "rgba(255,255,255,0.025)" }}>
-                          <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-400 to-cyan-400 grid place-items-center text-[9px] font-bold shrink-0">{c.avatar}</div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2.5 mb-1.5">
-                                <p className="text-[12px] font-semibold text-white/85">{c.name}</p>
-                                <span className="text-[10px] text-blue-300/60">{c.website}</span>
-                                <span className="text-[10px] text-white/15">·</span>
-                                <span className="text-[10px] text-white/20">{c.time}</span>
-                              </div>
-                              <p className="text-[12px] text-white/60 leading-relaxed">{MiniMd(c.content)}</p>
-                              <div className="flex items-center gap-4 mt-3">
-                                <button onClick={() => toggleLike(c.id)}
-                                  className="flex items-center gap-1.5 text-[11px] transition-all" style={{ color: liked.has(c.id) ? "#fb7185" : "rgba(255,255,255,0.3)" }}>
-                                  <Heart size={12} fill={liked.has(c.id) ? "#fb7185" : "none"} /> {c.likes + (liked.has(c.id) ? 1 : 0)}
-                                </button>
-                                <button onClick={() => setReplyTo(replyTo === c.id ? null : c.id)}
-                                  className="flex items-center gap-1.5 text-white/30 hover:text-blue-400 transition-all text-[11px]"><Reply size={12} /> Reply</button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        {replyTo === c.id && (
-                          <div className="ml-10 mt-2 relative">
-                            <div className="flex gap-2 animate-slide-up">
-                              <input placeholder="Write a reply..." value={replyText} onChange={e => setReplyText(e.target.value)}
-                                onKeyDown={e => e.key === "Enter" && pubReply(c.id)}
-                                className="flex-1 rounded-xl px-3.5 py-2 text-[12px] outline-none text-white/70 border border-white/[0.06] bg-white/[0.04]" />
-                              <button onClick={() => setShowReplyEmoji(showReplyEmoji === c.id ? null : c.id)}
-                                className="w-8 h-8 rounded-xl grid place-items-center text-white/30 hover:text-white/60 hover:bg-white/[0.04] transition-all"><Smile size={14} /></button>
-                              <button onClick={() => pubReply(c.id)}
-                                className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-violet-500 grid place-items-center shadow-lg hover:scale-105 transition-all"><Send size={12} /></button>
-                            </div>
-                            {showReplyEmoji === c.id && (
-                              <EmojiPop onSelect={e => setReplyText(p => p + e)} onClose={() => setShowReplyEmoji(null)} />
-                            )}
-                          </div>
-                        )}
-                        {c.replies && c.replies.length > 0 && (
-                          <div className="ml-10 mt-2 space-y-2">
-                            {c.replies.map(r => (
-                              <div key={r.id} className="rounded-xl p-3 border border-white/[0.04]" style={{ background: "rgba(255,255,255,0.02)" }}>
-                                <div className="flex items-start gap-2.5">
-                                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-400 to-violet-400 grid place-items-center text-[8px] font-bold shrink-0">{r.avatar}</div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-0.5">
-                                      <p className="text-[11px] font-semibold text-white/80">{r.name}</p>
-                                      <span className="text-[9px] text-white/20">{r.time}</span>
-                                    </div>
-                                    <p className="text-[11px] text-white/55 leading-relaxed">{r.content}</p>
-                                    <button onClick={() => { const nid = r.id * 100 + 1; toggleLike(c.id); }}
-                                      className="flex items-center gap-1 mt-1.5 text-[10px] transition-all" style={{ color: "rgba(255,255,255,0.25)" }}>
-                                      <Heart size={10} /> {r.likes}
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Comment Form */}
-                  <div className="rounded-2xl p-5 border border-white/[0.05]" style={{ background: "rgba(255,255,255,0.025)" }}>
-                    <p className="text-[12px] font-semibold text-white/70 mb-4">Leave a comment</p>
-                    <div className="space-y-3">
-                      <div className="flex gap-3">
-                        <input placeholder="Name *" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className={ic} />
-                        <input placeholder="Email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} className={ic} />
-                        <input placeholder="Website" value={form.website} onChange={e => setForm(p => ({ ...p, website: e.target.value }))} className={ic} />
-                      </div>
-                      <div className="relative">
-                        <textarea placeholder="Write your comment... (Markdown supported)" value={form.content}
-                          onChange={e => setForm(p => ({ ...p, content: e.target.value }))} rows={3} className={`${ic} resize-none pr-10`} />
-                        <button onClick={() => setShowEmoji(!showEmoji)}
-                          className="absolute right-2.5 bottom-3 w-7 h-7 rounded-lg grid place-items-center text-white/25 hover:text-white/60 transition-all"><Smile size={14} /></button>
-                        {showEmoji && <EmojiPop onSelect={e => setForm(p => ({ ...p, content: p.content + e }))} onClose={() => setShowEmoji(false)} />}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-white/20">Supports **bold**, _italic_, `code`</span>
-                        <button onClick={pubComment}
-                          className="px-6 py-2.5 rounded-xl text-[11px] font-semibold text-white bg-gradient-to-r from-blue-500 to-violet-500 hover:shadow-[0_0_20px_rgba(76,201,240,0.3)] transition-all">Post Comment</button>
-                      </div>
-                    </div>
-                  </div>
-                  <div ref={commentEndRef} />
-                </div>
-              </div>
-            ) : (
-              <>
-                {featured && activeCat === 0 && (
-                  <div className="relative rounded-2xl overflow-hidden group cursor-pointer"
-                    style={{ background: "linear-gradient(135deg, rgba(76,201,240,0.6), rgba(123,47,247,0.45))", boxShadow: "0 20px 60px -12px rgba(76,201,240,0.25), inset 0 1px 0 rgba(255,255,255,0.15)" }}
-                    onClick={() => setSelectedIdx(ARTICLES.indexOf(featured))}>
-                    <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl opacity-50" style={{ background: "radial-gradient(circle, rgba(255,255,255,0.2), transparent 70%)" }} />
-                    <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full blur-3xl opacity-40" style={{ background: "radial-gradient(circle, rgba(76,201,240,0.3), transparent 70%)" }} />
-                    <div className="relative p-8 flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2.5 mb-4">
-                          <span className="text-[10px] font-bold text-white bg-white/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/25">✦ Featured</span>
-                          <span className="text-[10px] text-white/60">{featured.date}</span>
-                          <span className="text-[10px] text-white/40">{featured.readTime}</span>
-                        </div>
-                        <h2 className="text-3xl font-bold tracking-tight mb-3 text-white leading-[1.08]">{featured.title}</h2>
-                        <p className="text-[14px] text-white/75 leading-relaxed max-w-lg">{featured.desc}</p>
-                        <div className="flex items-center gap-5 mt-5">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-400 to-cyan-300 grid place-items-center text-[9px] font-bold shadow-lg">AM</div>
-                            <span className="text-[12px] text-white/70">{featured.author}</span>
-                          </div>
-                          <span className="text-[11px] text-white/50">{featured.comments} comments</span>
-                        </div>
-                      </div>
-                      <div className="w-28 h-28 rounded-2xl bg-white/10 backdrop-blur-xl grid place-items-center shrink-0 ml-6 border border-white/15"><BookOpen size={32} className="text-white/40" /></div>
-                    </div>
-                  </div>
-                )}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredArticles.map((a, i) => (
-                    <div key={i} className={rc} onClick={() => setSelectedIdx(ARTICLES.indexOf(a))}>
-                      <div className="p-5">
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className={`text-[9px] font-semibold px-2.5 py-0.5 rounded-full border ${TAG_COLORS[a.tag] || "border-white/10 text-white/40"}`}>{a.tag}</span>
-                          <span className="text-[9px] text-white/25">{a.readTime}</span>
-                        </div>
-                        <h3 className="text-[14px] font-semibold tracking-tight mb-2 text-white/85 group-hover:text-white">{a.title}</h3>
-                        <p className="text-[12px] text-white/45 leading-relaxed line-clamp-2">{a.desc}</p>
-                        <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/[0.03]">
-                          <div className="flex items-center gap-2"><Clock size={11} className="text-white/15" /><span className="text-[10px] text-white/25">{a.date}</span></div>
-                          <ArrowRight size={14} className="text-white/20 group-hover:text-blue-400 transition-all group-hover:translate-x-1" />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
+            {bodyContent}
           </div>
+
         </div>
-      </div>
+        </div>
     </div>
   );
 }
