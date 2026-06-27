@@ -14,7 +14,7 @@ echo alpha.coulsonzero.shop'> CNAME
 
 git init
 git add -A
-git commit -m 'deploy blog'
+git commit -m 'deploy alpha'
 
 git push -f git@github.com:coulsonzero/alpha.git HEAD:gh-pages
 
