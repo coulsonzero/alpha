@@ -1,4 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
+import hljs from "highlight.js";
+import "highlight.js/styles/github-dark.css";
 import {
   BookOpen, ArrowRight, Clock, MessageCircle, Heart, Reply,
   Send, ArrowLeft, Copy, Check, Smile, Eye, FileText,
@@ -76,25 +78,29 @@ const INITIAL_COMMENTS: Comment[] = [
   { id: 3, name: "Marcus Webb", website: "marcus.codes", avatar: "MW", time: "3 hours ago", content: "The glassmorphism system is incredible. 🔥 Well documented!", likes: 6, parentId: null, replies: [] },
 ];
 
-/* ─── Syntax Highlight (github-dark) ─── */
-function hl(code: string): string {
-  return code
-    .replace(/(\/\/.*)/g, '<span style="color:#6e7681">$1</span>')
-    .replace(/("(?:[^"\\]|\\.)*")/g, '<span style="color:#a5d6ff">$1</span>')
-    .replace(/('(?:[^'\\]|\\.)*')/g, "<span style=\"color:#a5d6ff\">$1</span>")
-    .replace(/\b(import|from|const|let|var|function|return|if|else|async|await|new|export|default|console)\b/g, '<span style="color:#c792ea">$1</span>')
-    .replace(/\b(string|number|boolean|void|any|Record|React)\b/g, '<span style="color:#82aaff">$1</span>')
-    .replace(/\b(true|false|null|undefined)\b/g, '<span style="color:#f77669">$1</span>')
-    .replace(/\b(\d+\.?\d*)\b/g, '<span style="color:#ff9cac">$1</span>')
-    .replace(/(\{|\}|\(|\)|\[|\])/g, '<span style="color:#89ddff">$1</span>')
-    .replace(/(\.)(map|filter|reduce|forEach|catch|then)/g, '<span style="color:#82aaff">$1$2</span>');
-}
-
-/* ─── Code Block (github-dark style) ─── */
+/* ─── Code Block (github-dark via highlight.js) ─── */
 interface CodeBlockProps { code: string; lang: string; }
 const CodeBlock = ({ code, lang }: CodeBlockProps) => {
   const [copied, setCopied] = useState(false);
   const lines = code.split("\n");
+  const html = useMemo(() => {
+    if (!code) return "";
+    const l = normalizeLang(lang || "");
+    try {
+      if (l && hljs.getLanguage(l)) {
+        return hljs.highlight(code, { language: l }).value;
+      }
+      return hljs.highlightAuto(code).value;
+    } catch {
+      return code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+  }, [code, lang]);
+
+  const displayLang = lang || (() => {
+    try {
+      return hljs.highlightAuto(code).language || "";
+    } catch { return ""; }
+  })();
   return (
     <div className="my-5 rounded-2xl overflow-hidden border" style={{ borderColor: "rgba(255,255,255,0.06)", background: "#0d1117", boxShadow: "0 8px 24px -8px rgba(0,0,0,0.4)" }}>
       <div className="flex items-center justify-between px-4 py-2 border-b" style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.03)" }}>
@@ -109,11 +115,45 @@ const CodeBlock = ({ code, lang }: CodeBlockProps) => {
           {lines.map((_, i) => <div key={i}>{i + 1}</div>)}
         </div>
         <pre className="flex-1 p-3 text-[11px] leading-[1.7] overflow-x-auto scrollbar-none" style={{ fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}
-          dangerouslySetInnerHTML={{ __html: hl(code) }} />
+          dangerouslySetInnerHTML={{ __html: html }} />
       </div>
     </div>
   );
 };
+
+/** Normalize language aliases so highlight.js can detect them */
+function normalizeLang(lang: string): string {
+  const map: Record<string, string> = {
+    sh: "bash",
+    shell: "bash",
+    zsh: "bash",
+    bash: "bash",
+    bat: "dos",
+    cmd: "dos",
+    dos: "dos",
+    py: "python",
+    js: "javascript",
+    ts: "typescript",
+    jsx: "javascript",
+    tsx: "typescript",
+    rb: "ruby",
+    rs: "rust",
+    go: "go",
+    sql: "sql",
+    json: "json",
+    yml: "yaml",
+    yaml: "yaml",
+    md: "markdown",
+    mdx: "markdown",
+    html: "xml",
+    hbs: "handlebars",
+    txt: "plaintext",
+    text: "plaintext",
+    plain: "plaintext",
+    redis: "redis",
+  };
+  return map[lang.toLowerCase()] || lang;
+}
 
 /* ─── Mini MD renderer ─── */
 function MiniMd(text: string) {
@@ -207,6 +247,13 @@ export default function DocsPage() {
 
   const sel = selectedIdx !== null ? ARTICLES[selectedIdx] : null;
   const featured = ARTICLES.find(a => a.featured);
+
+  // Memoize rendered markdown to avoid re-highlight on every render
+  const renderedContent = useMemo(() => {
+    const md = articleMd || sel?.md || "";
+    if (!md) return null;
+    return renderMarkdown(md);
+  }, [articleMd, sel?.md]);
 
   // Compute per-category counts from ARTICLES
   const catCounts = CATEGORIES.map(cat =>
@@ -390,7 +437,7 @@ export default function DocsPage() {
                 {/* Render area */}
                 <div className="transition-all duration-300">
                   {viewMode === "preview" ? (
-                    renderMarkdown(articleMd || sel.md || "")
+                    renderedContent
                   ) : (
                     <div className="rounded-2xl overflow-hidden border" style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.25)" }}>
                       {isEditing ? (
