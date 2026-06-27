@@ -21,7 +21,7 @@ export const TopNav = () => (
         </kbd>
       </div>
 
-      <button className="glass glass-hover w-11 h-11 rounded-2xl grid place-items-center relative">
+      <button className="glass glass-hover w-11 h-11 rounded-[50%] grid place-items-center relative">
         <Bell size={16} className="text-white/70" />
         <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-neon-cyan shadow-[0_0_10px_hsl(var(--neon-cyan))]" />
       </button>

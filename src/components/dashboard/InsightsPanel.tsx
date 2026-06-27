@@ -1,4 +1,5 @@
 import { Sparkles, ArrowUpRight, Globe, CreditCard, UserPlus, MessageCircle } from "lucide-react";
+import { WeeklyCalendar } from "@/components/dashboard/WeeklyCalendar";
 
 const activity = [
   { icon: UserPlus, color: "from-neon-cyan to-neon-blue", title: "New enterprise signup", who: "Acme Industries", time: "2m ago" },
@@ -15,6 +16,9 @@ const goals = [
 
 export const InsightsPanel = () => (
   <div className="flex flex-col gap-5 animate-fade-in" style={{ animationDelay: "0.4s" }}>
+    {/* Weekly Calendar */}
+    <WeeklyCalendar />
+
     {/* AI insight */}
     <div className="glass-strong noise relative rounded-3xl p-6 overflow-hidden">
       <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full opacity-50 blur-3xl bg-gradient-to-br from-neon-purple to-neon-pink" />

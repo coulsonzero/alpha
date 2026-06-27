@@ -5,6 +5,7 @@ import { StatCards } from "@/components/dashboard/StatCards";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { InsightsPanel } from "@/components/dashboard/InsightsPanel";
 import { PerformanceWidgets } from "@/components/dashboard/PerformanceWidgets";
+import { UserTable } from "@/components/dashboard/UserTable";
 import { Particles } from "@/components/dashboard/Particles";
 
 const Index = () => {
@@ -26,6 +27,8 @@ const Index = () => {
 
           <InsightsPanel />
         </div>
+
+        <UserTable className="mt-6" />
 
         <footer className="mt-12 pb-4 flex flex-wrap items-center justify-between gap-3 text-xs text-white/30">
           <p>© 2026 Nebula · Crafted with precision</p>
