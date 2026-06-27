@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   BarChart3,
-  Wallet,
+  FileText,
   Users,
   Sparkles,
   MessageSquare,
@@ -14,7 +14,7 @@ import {
 const items = [
   { icon: LayoutDashboard, label: "Overview" },
   { icon: BarChart3, label: "Analytics" },
-  { icon: Wallet, label: "Revenue" },
+  { icon: FileText, label: "Docs" },
   { icon: Users, label: "Audience" },
   { icon: Sparkles, label: "AI Insights" },
   { icon: MessageSquare, label: "Messages" },
@@ -76,6 +76,7 @@ export const Sidebar = () => {
 
   const getActiveFromPath = () => {
     if (location.pathname === "/chat") return 5; // Messages
+    if (location.pathname === "/docs") return 2; // Docs
     return 0; // Overview (dashboard)
   };
 
@@ -89,6 +90,8 @@ export const Sidebar = () => {
     setActive(index);
     if (label === "Messages") {
       navigate("/chat");
+    } else if (label === "Docs") {
+      navigate("/docs");
     } else if (location.pathname !== "/") {
       navigate("/");
     }
