@@ -6,13 +6,18 @@ import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { InsightsPanel } from "@/components/dashboard/InsightsPanel";
 import { PerformanceWidgets } from "@/components/dashboard/PerformanceWidgets";
 import { UserTable } from "@/components/dashboard/UserTable";
+import { StockChart } from "@/components/dashboard/StockChart";
 import { Particles } from "@/components/dashboard/Particles";
+import { MusicPlayer } from "@/components/dashboard/MusicPlayer";
 
 const Index = () => {
   return (
     <div className="relative min-h-screen w-full">
       {/* Background Particles */}
       <Particles />
+
+      {/* Music Player */}
+      <MusicPlayer />
 
       {/* Ambient background glow */}
       <div className="pointer-events-none fixed inset-0 z-0">
@@ -45,6 +50,8 @@ const Index = () => {
         </div>
 
         <UserTable className="mt-6" />
+
+        <StockChart className="mt-6" />
 
         <footer className="mt-12 pb-4 flex flex-wrap items-center justify-between gap-3 text-xs text-white/30">
           <p>© 2026 Nebula · Crafted with precision</p>

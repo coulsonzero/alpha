@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { Sparkles, ArrowUpRight, Globe, CreditCard, UserPlus, MessageCircle, ChevronDown } from "lucide-react";
 import { WeeklyCalendar } from "@/components/dashboard/WeeklyCalendar";
+import { TodoCard } from "@/components/dashboard/TodoCard";
 
 const activity = [
   { icon: UserPlus, color: "from-neon-cyan to-neon-blue", title: "New enterprise signup", who: "Acme Industries", time: "2m ago" },
@@ -64,6 +65,9 @@ export const InsightsPanel = () => (
   <div className="flex flex-col gap-5 animate-fade-in" style={{ animationDelay: "0.4s" }}>
     {/* Weekly Calendar */}
     <WeeklyCalendar />
+
+    {/* Todo */}
+    <TodoCard />
 
     {/* AI insight */}
     <CollapsibleCard

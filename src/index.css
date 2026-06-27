@@ -224,6 +224,10 @@
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-8px); }
   }
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
 
   .animate-float-slow { animation: float-slow 7s ease-in-out infinite; }
   .animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
@@ -244,6 +248,7 @@
   .animate-dropdown-in { animation: dropdown-in 0.25s ease-out forwards; }
   .animate-slide-up { animation: slide-up 0.4s ease forwards; }
   .animate-hero-float { animation: hero-float 4s ease-in-out infinite; }
+  .animate-spin-slow { animation: spin-slow 8s linear infinite; }
 
   /* 3D Tilt */
   .tilt-container { perspective: 800px; }
