@@ -38,6 +38,12 @@ export const MusicPlayer = () => {
   }, []);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const playlistRef = useRef<Track[]>([]);
+  const trackIdxRef = useRef(0);
+
+  // Keep refs in sync
+  useEffect(() => { playlistRef.current = playlist; }, [playlist]);
+  useEffect(() => { trackIdxRef.current = trackIdx; }, [trackIdx]);
 
   // Initialize audio
   useEffect(() => {
@@ -48,8 +54,10 @@ export const MusicPlayer = () => {
 
     const onLoaded = () => setDuration(audio.duration || 0);
     const onEnded = () => {
-      if (playlist.length > 0) {
-        setTrackIdx((prev) => (prev + 1) % playlist.length);
+      const list = playlistRef.current;
+      if (list.length > 0) {
+        const next = (trackIdxRef.current + 1) % list.length;
+        setTrackIdx(next);
       } else {
         audio.currentTime = 0;
         audio.play().catch(() => {});
