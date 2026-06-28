@@ -156,7 +156,7 @@ export const MusicPlayer = () => {
   // collapsed mode
   if (collapsed) {
     return (
-      <div style={{ position: "fixed", top: "32px", right: "150px", zIndex: 40, transition: "all 0.5s cubic-bezier(0.22, 1, 0.36, 1)" }}>
+      <div style={{ position: "fixed", top: "32px", right: "150px", zIndex: 40, transform: "scale(0.9)", transition: "all 0.5s cubic-bezier(0.22, 1, 0.36, 1)" }}>
         <button onClick={() => setCollapsed(false)}
           className="w-11 h-11 rounded-[50%] grid place-items-center"
           style={{
@@ -175,7 +175,7 @@ export const MusicPlayer = () => {
   }
 
   return (
-    <div style={{ position: "fixed", left: "calc(50% - 230px)", top: "32px", zIndex: 40, transition: "all 0.5s cubic-bezier(0.22, 1, 0.36, 1)" }}>
+    <div style={{ position: "fixed", left: "calc(50% - 230px)", top: "32px", zIndex: 40, transform: "scale(0.85)", transition: "all 0.5s cubic-bezier(0.22, 1, 0.36, 1)" }}>
       <div className="glass-strong noise rounded-2xl px-5 py-2.5 flex items-center gap-5 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.7)]">
         {/* Album art — click to collapse */}
         <button onClick={() => setCollapsed(true)} className="shrink-0 focus:outline-none">
