@@ -31,6 +31,7 @@ const priorityBadge: Record<string, string> = {
 export const TodoCard = () => {
   const [todos, setTodos] = useState<Todo[]>(initialTodos);
   const [input, setInput] = useState("");
+  const [selectedPriority, setSelectedPriority] = useState<Todo["priority"]>("medium");
 
   const toggle = (id: number) => {
     setTodos((prev) =>
@@ -48,7 +49,7 @@ export const TodoCard = () => {
     const maxId = todos.reduce((m, t) => Math.max(m, t.id), 0);
     setTodos((prev) => [
       ...prev,
-      { id: maxId + 1, text, done: false, priority: "medium" as const },
+      { id: maxId + 1, text, done: false, priority: selectedPriority },
     ]);
     setInput("");
   };
@@ -73,11 +74,11 @@ bg-gradient-to-br from-neon-pink to-neon-purple grid place-items-center shadow-l
           </div>
         </div>
         <span className="text-[10px] text-white/30 tabular-nums">
-          {remaining}/{total} left
+          {remaining}/{total} Done
         </span>
       </div>
 
-      {/* Add input */}
+      {/* Add input + priority selector */}
       <div className="flex items-center gap-2 mb-4">
         <input
           type="text"
@@ -88,6 +89,22 @@ bg-gradient-to-br from-neon-pink to-neon-purple grid place-items-center shadow-l
           className="flex-1 bg-white/5 rounded-xl
 px-3 py-2 text-xs outline-none placeholder:text-white/20 focus:bg-white/8 focus:ring-1 focus:ring-neon-purple/20 transition-all"
         />
+        <button
+          onClick={() => {
+            const order: Todo["priority"][] = ["medium", "high", "low"];
+            const idx = order.indexOf(selectedPriority);
+            setSelectedPriority(order[(idx + 1) % order.length]);
+          }}
+          className={`w-16 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${
+            selectedPriority === "high"
+              ? "bg-rose-500/20 text-rose-300 border-rose-400/30"
+              : selectedPriority === "medium"
+              ? "bg-cyan-500/20 text-cyan-300 border-cyan-400/30"
+              : "bg-white/10 text-white/50 border-white/20"
+          }`}
+        >
+          {selectedPriority === "high" ? "high" : selectedPriority === "medium" ? "medium" : "low"}
+        </button>
         <button
           onClick={add}
           className="w-8 h-8 rounded-[50%]
