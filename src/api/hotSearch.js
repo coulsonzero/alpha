@@ -1,8 +1,4 @@
-import axios from 'axios'
-
-const request = axios.create({
-  baseURL: '/api/v1',
-})
+import request from './request'
 
 // weibo
 export function getHotSearch(date) {
