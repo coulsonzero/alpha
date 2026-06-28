@@ -165,7 +165,7 @@ export const WeiboHotSearch = () => {
       {dateOpen && (
         <>
           <div className="fixed inset-0 z-[999]" onClick={() => setDateOpen(false)} />
-          <div className="fixed z-[999] top-[700px] mt-3 right-[30px] glass rounded-2xl p-1.5 animate-dropdown-in flex gap-1 opacity-60">
+          <div className="fixed z-[999] top-[710px] mt-3 right-[30px] glass rounded-2xl p-1.5 animate-dropdown-in flex gap-1 opacity-60">
             {dateOptions.map((d) => {
               const active = d === selectedDate
               return (
@@ -261,7 +261,7 @@ export const WeiboHotSearch = () => {
           ) : error ? (
             <div className="flex flex-col items-center gap-3 py-10 text-white/30">
               <Globe size={28} />
-              <p className="text-sm font-medium text-white/40">数据加载失败</p>
+              <p className="text-sm font-medium text-white/40">没有缓存当日数据!</p>
             </div>
           ) : (
             <div className="space-y-0.5">
