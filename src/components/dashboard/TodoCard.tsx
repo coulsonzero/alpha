@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Plus, Check, Trash2, Circle, Loader2, Globe } from "lucide-react";
-import { createTodo, getTodos } from "@/api/hotSearch";
+import { createTodo, getTodos, updateTodo, deleteTodo } from "@/api/hotSearch";
 
 interface Todo {
   id: number;
@@ -32,8 +32,8 @@ export const TodoCard = () => {
   useEffect(() => {
     getTodos()
       .then((res) => {
-        const data = res.data?.data ?? res.data ?? []
-        setTodos(Array.isArray(data) ? data : [])
+        const raw = res.data?.data ?? res.data ?? []
+        setTodos(Array.isArray(raw) ? raw : [])
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false))
@@ -46,8 +46,14 @@ export const TodoCard = () => {
     try {
       const res = await createTodo({ title: text, priority: selectedPriority, active: true });
       const created = res.data?.data ?? res.data;
-      if (created && created.id) {
-        setTodos((prev) => [...prev, created]);
+      const item = {
+        id: created?.id ?? 0,
+        title: created?.title ?? text,
+        priority: created?.priority ?? selectedPriority,
+        active: created?.active ?? true,
+      }
+      if (item.id) {
+        setTodos((prev) => [...prev, item]);
       } else {
         const maxId = todos.reduce((m, t) => Math.max(m, t.id), 0);
         setTodos((prev) => [...prev, { id: maxId + 1, title: text, priority: selectedPriority, active: true }]);
@@ -151,11 +157,12 @@ transition-all duration-200 group ${
             >
               {/* Checkbox */}
               <button
-                onClick={() =>
+                onClick={() => {
+                  updateTodo(t.id, { active: !t.active })
                   setTodos((prev) =>
                     prev.map((x) => (x.id === t.id ? { ...x, active: !x.active } : x))
                   )
-                }
+                }}
                 className={`w-5 h-5 rounded-md grid place-items-center shrink-0 transition-all duration-200 border ${
                   !t.active
                     ? "bg-neon-cyan/30 border-neon-cyan/50"
@@ -192,7 +199,10 @@ transition-all duration-200 group ${
 
               {/* Delete */}
               <button
-                onClick={() => setTodos((prev) => prev.filter((x) => x.id !== t.id))}
+                onClick={() => {
+                  deleteTodo(t.id)
+                  setTodos((prev) => prev.filter((x) => x.id !== t.id))
+                }}
                 className="w-6 h-6 rounded-lg grid place-items-center opacity-0 group-hover:opacity-100 hover:bg-white/10 transition-all shrink-0"
               >
                 <Trash2 size={10} className="text-white/30" />
