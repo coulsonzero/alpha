@@ -23,3 +23,8 @@ git push origin --delete main
 ### 修改远程仓库的默认分支main为master
 Settings → Branches → Default branch → Change branch
 
+### 删除分支dev
+```sh
+git branch -d dev
+git push origin --delete dev
+```
