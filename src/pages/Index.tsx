@@ -3,7 +3,7 @@ import { TopNav } from "@/components/dashboard/TopNav";
 import { HeroCard } from "@/components/dashboard/HeroCard";
 import { StatCards } from "@/components/dashboard/StatCards";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
-import { InsightsPanel } from "@/components/dashboard/InsightsPanel";
+import { RightCard } from "@/components/dashboard/RightCard";
 import { PerformanceWidgets } from "@/components/dashboard/PerformanceWidgets";
 import { UserTable } from "@/components/dashboard/UserTable";
 import { StockChart } from "@/components/dashboard/StockChart";
@@ -44,7 +44,7 @@ const Index = () => {
             <PerformanceWidgets />
           </div>
 
-          <InsightsPanel />
+          <RightCard />
         </div>
 
         <UserTable className="mt-6" />
