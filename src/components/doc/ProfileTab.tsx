@@ -1,16 +1,6 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
+import logo from "@/assets/logo.png";
 
-export const ProfileTab = ({ activeTab }: { activeTab: number }) => {
-  const [avatarUrl, setAvatarUrl] = useState("");
-
-  useEffect(() => {
-    axios
-      .get("https://api.github.com/users/coulsonzero")
-      .then((r) => setAvatarUrl(r.data.avatar_url))
-      .catch(() => {});
-  }, []);
-
+export const ProfileTab = () => {
   return (
     <div className="max-w-2xl mx-auto pt-4 space-y-6">
       {/* Profile Card */}
@@ -18,17 +8,7 @@ export const ProfileTab = ({ activeTab }: { activeTab: number }) => {
         {/* Avatar */}
         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-violet-500 via-purple-500 to-cyan-400 p-[3px] shadow-[0_0_40px_-8px_hsla(270,95%,60%,0.4)] mb-4">
           <div className="w-full h-full rounded-full bg-[#050505] flex items-center justify-center overflow-hidden">
-            {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt="coulsonzero"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span className="text-3xl font-bold bg-gradient-to-br from-violet-300 to-cyan-200 bg-clip-text text-transparent">
-                C
-              </span>
-            )}
+            <img src={logo} alt="coulsonzero" className="w-full h-full object-cover" />
           </div>
         </div>
 
