@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { Sparkles, ArrowUpRight, Globe, CreditCard, UserPlus, MessageCircle, ChevronDown } from "lucide-react";
 import { WeeklyCalendar } from "@/components/dashboard/WeeklyCalendar";
 import { TodoCard } from "@/components/dashboard/TodoCard";
+import { WeiboHotSearch } from "@/components/dashboard/WeiboHotSearch";
 
 const activity = [
   { icon: UserPlus, color: "from-neon-cyan to-neon-blue", title: "New enterprise signup", who: "Acme Industries", time: "2m ago" },
@@ -68,6 +69,9 @@ export const InsightsPanel = () => (
 
     {/* Todo */}
     <TodoCard />
+
+    {/* Weibo Hot Search */}
+    <WeiboHotSearch />
 
     {/* AI insight */}
     <CollapsibleCard
