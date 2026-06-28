@@ -1,47 +1,15 @@
-import { Mail, Shield, MoreHorizontal } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Mail, Shield, MoreHorizontal, Globe } from "lucide-react";
+import { getUsers } from "@/api/user";
 
-const users = [
-  {
-    name: "Alex Morgan",
-    email: "alex@nebula.io",
-    role: "Admin",
-    plan: "Pro",
-    status: "active",
-    joined: "Jan 12, 2026",
-  },
-  {
-    name: "Sarah Chen",
-    email: "sarah@nebula.io",
-    role: "Editor",
-    plan: "Team",
-    status: "active",
-    joined: "Feb 3, 2026",
-  },
-  {
-    name: "Marcus Webb",
-    email: "marcus@acme.co",
-    role: "Viewer",
-    plan: "Basic",
-    status: "active",
-    joined: "Mar 18, 2026",
-  },
-  {
-    name: "Priya Kapoor",
-    email: "priya@startup.io",
-    role: "Editor",
-    plan: "Team",
-    status: "pending",
-    joined: "Apr 2, 2026",
-  },
-  {
-    name: "James Liu",
-    email: "james@agency.com",
-    role: "Viewer",
-    plan: "Free",
-    status: "inactive",
-    joined: "May 10, 2026",
-  },
-];
+interface User {
+  ID?: number;
+  username?: string;
+  email?: string;
+  website?: string;
+  status?: string;
+  avatar?: string;
+}
 
 const statusStyles: Record<string, string> = {
   active: "text-emerald-300 bg-emerald-400/10 border-emerald-400/20",
@@ -49,147 +17,149 @@ const statusStyles: Record<string, string> = {
   inactive: "text-white/30 bg-white/5 border-white/10",
 };
 
-const roleIcon: Record<string, React.ReactNode> = {
-  Admin: <Shield size={10} />,
-  Editor: <Shield size={10} />,
-  Viewer: <Shield size={10} />,
-};
-
 interface UserTableProps {
   className?: string;
 }
 
-export const UserTable = ({ className = "" }: UserTableProps) => (
-  <div
-    className={`glass glass-hover noise rounded-3xl p-6 overflow-hidden animate-fade-in ${className}`}
-    style={{ animationDelay: "0.6s" }}
-  >
-    {/* Header */}
-    <div className="flex items-center justify-between mb-5">
-      <div>
-        <p className="text-xs text-white/40 font-medium tracking-widest uppercase">
-          Team
-        </p>
-        <h4 className="text-lg font-semibold">Members</h4>
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="text-[10px] text-white/30 bg-white/5 px-2 py-1 rounded-full">
-          {users.length} total
-        </span>
-        <button className="glass rounded-xl
-w-8 h-8 grid place-items-center hover:bg-white/10 transition-colors">
-          <MoreHorizontal size={14} className="text-white/50" />
-        </button>
-      </div>
-    </div>
+export const UserTable = ({ className = "" }: UserTableProps) => {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-    {/* Table */}
-    <div className="overflow-x-auto scrollbar-none">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-white/5">
-            {["User", "Role", "Plan", "Status", "Joined", ""].map(
-              (h, i) => (
-                <th
-                  key={h}
-                  className={`text-[10px] font-semibold tracking-wider uppercase text-white/30 pb-3 text-left ${
-                    i === 0 ? "pr-4" : "px-3"
-                  }`}
+  useEffect(() => {
+    getUsers()
+      .then((res) => {
+        const data = res.data?.data ?? res.data ?? [];
+        setUsers(Array.isArray(data) ? data : []);
+      })
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const userList = users.map((u) => ({
+    name: u.username || "Unknown",
+    email: u.email || "",
+    website: u.website || "",
+    avatar: u.avatar || "",
+    role: u.status === "active" ? "Active" : u.status === "pending" ? "Pending" : "Inactive",
+    status: u.status || "inactive",
+  }));
+
+  return (
+    <div
+      className={`glass glass-hover noise rounded-3xl p-6 overflow-hidden animate-fade-in ${className}`}
+      style={{ animationDelay: "0.6s" }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <p className="text-xs text-white/40 font-medium tracking-widest uppercase">
+            Users
+          </p>
+          <h4 className="text-lg font-semibold">User List</h4>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-white/30 bg-white/5 px-2 py-1 rounded-full">
+            {users.length} total
+          </span>
+          <button className="glass rounded-xl w-8 h-8 grid place-items-center hover:bg-white/10 transition-colors">
+            <MoreHorizontal size={14} className="text-white/50" />
+          </button>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto scrollbar-none">
+        {loading ? (
+          <div className="space-y-3 py-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 animate-pulse">
+                <div className="w-8 h-8 rounded-full bg-white/5" />
+                <div className="flex-1 space-y-1.5">
+                  <div className="h-4 w-1/3 rounded-lg bg-white/5" />
+                  <div className="h-3 w-1/4 rounded-lg bg-white/5" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center gap-3 py-10 text-white/30">
+            <Globe size={24} />
+            <p className="text-xs">Failed to load users</p>
+          </div>
+        ) : (
+          <div>
+            {/* Column headers */}
+            <div className="flex items-center gap-4 px-3 pb-3 text-[10px] font-semibold tracking-wider uppercase text-white/30">
+              <div className="flex-1 min-w-0">Name</div>
+              <div className="min-w-0 flex-[1.5]">Email</div>
+              <div className="min-w-0 flex-1">Website</div>
+              <div className="shrink-0 w-[80px]">Status</div>
+              <div className="shrink-0 w-7" />
+            </div>
+            <div className="space-y-2">
+              {userList.map((u, i) => (
+                <div
+                  key={u.email || i}
+                  className="flex items-center gap-4 px-3 py-[10px] rounded-xl border border-white/[0.06] hover:bg-white/[0.03] transition-colors"
                 >
-                  {h}
-                </th>
-              )
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((u, i) => (
-            <tr
-              key={u.email}
-              className={`border-b border-white/[0.03] hover:bg-white/[0.03] transition-colors ${
-                i === users.length - 1 ? "border-b-0" : ""
-              }`}
-            >
-              {/* User */}
-              <td className="py-3 pr-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-[50%]
-bg-gradient-to-br from-neon-pink via-neon-purple to-neon-blue grid place-items-center text-[10px] font-bold shrink-0">
-                    {u.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </div>
-                  <div className="min-w-0">
+                  {/* User */}
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-8 h-8 rounded-[50%] shrink-0
+bg-gradient-to-br from-neon-pink via-neon-purple to-neon-blue grid place-items-center text-[10px] font-bold overflow-hidden">
+                      {u.avatar ? (
+                        <img src={u.avatar} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        u.name.charAt(0).toUpperCase()
+                      )}
+                    </div>
                     <p className="text-xs font-semibold truncate">{u.name}</p>
-                    <p className="text-[10px] text-white/30 truncate flex items-center gap-1">
-                      <Mail size={8} />
-                      {u.email}
-                    </p>
+                  </div>
+
+                  {/* Email */}
+                  <div className="flex items-center gap-1.5 text-xs text-white/50 min-w-0 flex-[1.5]">
+                    <Mail size={10} className="shrink-0" />
+                    <span className="truncate">{u.email || "—"}</span>
+                  </div>
+
+                  {/* Website */}
+                  <div className="flex items-center gap-1.5 text-xs text-white/50 min-w-0 flex-1">
+                    <Globe size={10} className="shrink-0" />
+                    <span className="truncate">{u.website || "—"}</span>
+                  </div>
+
+                  {/* Status */}
+                  <div className="shrink-0">
+                    <span
+                      className={`inline-flex items-center gap-1.5 text-[10px] font-medium px-2.5 py-1 rounded-full border ${
+                        statusStyles[u.status] || statusStyles.inactive
+                      }`}
+                    >
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          u.status === "active"
+                            ? "bg-emerald-400 animate-pulse"
+                            : u.status === "pending"
+                              ? "bg-amber-400"
+                              : "bg-white/20"
+                        }`}
+                      />
+                      {u.status}
+                    </span>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="shrink-0">
+                    <button className="w-7 h-7 rounded-lg glass grid place-items-center hover:bg-white/10 transition-colors">
+                      <MoreHorizontal size={12} className="text-white/30" />
+                    </button>
                   </div>
                 </div>
-              </td>
-
-              {/* Role */}
-              <td className="py-3 px-3">
-                <div className="flex items-center gap-1.5 text-xs text-white/50">
-                  {roleIcon[u.role]}
-                  {u.role}
-                </div>
-              </td>
-
-              {/* Plan */}
-              <td className="py-3 px-3">
-                <span
-                  className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border ${
-                    u.plan === "Pro"
-                      ? "text-neon-purple/80 bg-neon-purple/10 border-neon-purple/20"
-                      : u.plan === "Team"
-                        ? "text-neon-cyan/80 bg-neon-cyan/10 border-neon-cyan/20"
-                        : u.plan === "Basic"
-                          ? "text-neon-blue/70 bg-neon-blue/10 border-neon-blue/20"
-                          : "text-white/40 bg-white/5 border-white/10"
-                  }`}
-                >
-                  {u.plan}
-                </span>
-              </td>
-
-              {/* Status */}
-              <td className="py-3 px-3">
-                <span
-                  className={`inline-flex items-center gap-1.5 text-[10px] font-medium px-2.5 py-1 rounded-full border ${
-                    statusStyles[u.status]
-                  }`}
-                >
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full ${
-                      u.status === "active"
-                        ? "bg-emerald-400 animate-pulse"
-                        : u.status === "pending"
-                          ? "bg-amber-400"
-                          : "bg-white/20"
-                    }`}
-                  />
-                  {u.status}
-                </span>
-              </td>
-
-              {/* Joined */}
-              <td className="py-3 px-3">
-                <span className="text-[10px] text-white/30">{u.joined}</span>
-              </td>
-
-              {/* Actions */}
-              <td className="py-3 pl-3 text-right">
-                <button className="w-7 h-7 rounded-lg glass grid place-items-center hover:bg-white/10 transition-colors">
-                  <MoreHorizontal size={12} className="text-white/30" />
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              ))}
+            </div>
+            </div>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
