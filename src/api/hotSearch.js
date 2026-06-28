@@ -4,11 +4,13 @@ const request = axios.create({
   baseURL: '/api/v1',
 })
 
+// weibo
 export function getHotSearch(date) {
   const params = date ? { date } : {}
   return request.get('/hot_search', { params })
 }
 
+// todo task
 export function getTodos() {
   return request.get('/task')
 }
@@ -23,4 +25,10 @@ export function updateTodo(id, data) {
 
 export function deleteTodo(id) {
   return request.delete(`/task/${id}`)
+}
+
+
+// music
+export function getMusic() {
+  return request.get('/music')
 }

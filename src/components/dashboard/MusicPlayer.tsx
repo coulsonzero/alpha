@@ -9,6 +9,7 @@ import {
   Music,
   ListMusic,
 } from "lucide-react";
+import { getMusic } from "@/api/hotSearch";
 
 interface Track {
   title: string;
@@ -16,35 +17,9 @@ interface Track {
   src: string;
 }
 
-const PLAYLIST: Track[] = [
-  {
-    title: "SoundHelix 1",
-    artist: "SoundHelix",
-    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-  },
-  {
-    title: "SoundHelix 2",
-    artist: "SoundHelix",
-    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-  },
-  {
-    title: "SoundHelix 4",
-    artist: "SoundHelix",
-    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-  },
-  {
-    title: "SoundHelix 5",
-    artist: "SoundHelix",
-    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
-  },
-  {
-    title: "SoundHelix 6",
-    artist: "SoundHelix",
-    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3",
-  },
-];
-
 export const MusicPlayer = () => {
+  const [playlist, setPlaylist] = useState<Track[]>([]);
+  const [loading, setLoading] = useState(true);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
   const [volume, setVolume] = useState(0.7);
@@ -55,9 +30,14 @@ export const MusicPlayer = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [trackIdx, setTrackIdx] = useState(0);
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  useEffect(() => {
+    getMusic().then((res) => {
+      const data = res.data?.data || res.data || [];
+      setPlaylist(Array.isArray(data) ? data : []);
+    }).catch(() => {}).finally(() => setLoading(false));
+  }, []);
 
-  const track = PLAYLIST[trackIdx];
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Initialize audio
   useEffect(() => {
@@ -68,8 +48,12 @@ export const MusicPlayer = () => {
 
     const onLoaded = () => setDuration(audio.duration || 0);
     const onEnded = () => {
-      audio.currentTime = 0;
-      audio.play().catch(() => {});
+      if (playlist.length > 0) {
+        setTrackIdx((prev) => (prev + 1) % playlist.length);
+      } else {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+      }
     };
     const onTime = () => setCurrentTime(audio.currentTime);
     const onDur = () => setDuration(audio.duration || 0);
@@ -92,15 +76,16 @@ export const MusicPlayer = () => {
   // Load track
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
-    audio.src = track.src;
+    const t = playlist[trackIdx];
+    if (!audio || !t) return;
+    audio.src = t.src;
     audio.load();
     setCurrentTime(0);
     setDuration(0);
     if (playing) {
       audio.play().catch(() => setPlaying(false));
     }
-  }, [trackIdx]);
+  }, [trackIdx, playlist]);
 
   // Sync volume
   useEffect(() => {
@@ -122,17 +107,18 @@ export const MusicPlayer = () => {
 
   const handlePrev = useCallback(() => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio || !playlist.length) return;
     if (audio.currentTime > 3) {
       audio.currentTime = 0;
       return;
     }
-    setTrackIdx((prev) => (prev === 0 ? PLAYLIST.length - 1 : prev - 1));
-  }, []);
+    setTrackIdx((prev) => (prev === 0 ? playlist.length - 1 : prev - 1));
+  }, [playlist.length]);
 
   const handleNext = useCallback(() => {
-    setTrackIdx((prev) => (prev + 1) % PLAYLIST.length);
-  }, []);
+    if (!playlist.length) return;
+    setTrackIdx((prev) => (prev + 1) % playlist.length);
+  }, [playlist.length]);
 
   const formatTime = (s: number) => {
     if (!s || !isFinite(s)) return "0:00";
@@ -173,6 +159,12 @@ export const MusicPlayer = () => {
       </div>
     );
   }
+
+  // Don't render until playlist is loaded
+  if (!playlist.length) return null;
+
+  const track = playlist[trackIdx];
+  if (!track) return null;
 
   return (
     <div style={{ position: "fixed", left: "calc(50% - 230px)", top: "32px", zIndex: 40, transform: "scale(0.85)", transition: "all 0.5s cubic-bezier(0.22, 1, 0.36, 1)" }}>
@@ -313,10 +305,10 @@ grid place-items-center transition-all duration-200 ${
             >
               <div className="px-4 pt-3 pb-2 border-b border-black/[0.06]">
                 <p className="text-[10px] font-semibold text-black/40 uppercase tracking-[0.15em]">Playlist</p>
-                <p className="text-[11px] text-black/40 mt-0.5">{PLAYLIST.length} tracks</p>
+                <p className="text-[11px] text-black/40 mt-0.5">{playlist.length} tracks</p>
               </div>
               <div className="p-2 max-h-[260px] overflow-y-auto scrollbar-none">
-                {PLAYLIST.map((t, i) => (
+                {playlist.map((t, i) => (
                   <button
                     key={i}
                     onClick={() => {

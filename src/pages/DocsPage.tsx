@@ -17,7 +17,7 @@ import { ProfileTab } from "@/components/doc/ProfileTab";
 /* ─── Main ─── */
 export default function DocsPage() {
   const [activeCat, setActiveCat] = useState(0);
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState(2);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [comments, setComments] = useState<Comment[]>(INITIAL_COMMENTS);
