@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { getHotSearch } from "@/api/hotSearch"
-import { RefreshCw, Globe, Tags } from "lucide-react"
+import { RefreshCw, Globe, Tags, Calendar } from "lucide-react"
 
 interface HotSearchItem {
   rank: number
@@ -106,11 +106,30 @@ export const WeiboHotSearch = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [taggedOnly, setTaggedOnly] = useState(false)
+  const [selectedDate, setSelectedDate] = useState("")
+  const [dateOpen, setDateOpen] = useState(false)
 
-  const fetchData = async () => {
+  const getDateStr = (offset: number) => {
+    const d = new Date()
+    d.setDate(d.getDate() + offset)
+    return `${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+  }
+
+  const today = getDateStr(0)
+  const yesterday = getDateStr(-1)
+
+  const dateOptions = [today, yesterday, getDateStr(-2), getDateStr(-3), getDateStr(-4)]
+
+  const formatLabel = (d: string) => {
+    if (d === today) return "今天"
+    if (d === yesterday) return "昨天"
+    return d
+  }
+
+  const fetchData = async (date?: string) => {
     try {
       setError(false)
-      const res = await getHotSearch()
+      const res = await getHotSearch(date || undefined)
       const body = res.data
       setItems((Array.isArray(body?.data) ? body.data : Array.isArray(body) ? body : []).slice(0, 50))
     } catch {
@@ -124,13 +143,52 @@ export const WeiboHotSearch = () => {
     fetchData()
   }, [])
 
+  const handleDateSelect = async (date: string) => {
+    setSelectedDate(date)
+    setDateOpen(false)
+    setLoading(true)
+    await fetchData(date)
+  }
+
+  const handleRefresh = async () => {
+    setLoading(true)
+    await fetchData(selectedDate || undefined)
+  }
+
   const displayItems = taggedOnly
     ? items.filter((item) => item.category && CATEGORY_STYLES[item.category])
     : items
 
   return (
-    <div className="glass glass-hover noise rounded-3xl p-[1px]">
-      <div className="relative rounded-[calc(1.75rem-1px)] overflow-hidden">
+    <>
+      {/* Date overlay + dropdown */}
+      {dateOpen && (
+        <>
+          <div className="fixed inset-0 z-[999]" onClick={() => setDateOpen(false)} />
+          <div className="fixed z-[999] top-[700px] mt-3 right-[30px] glass rounded-2xl p-1.5 animate-dropdown-in flex gap-1 opacity-60">
+            {dateOptions.map((d) => {
+              const active = d === selectedDate
+              return (
+                <button
+                  key={d}
+                  onClick={() => handleDateSelect(active ? "" : d)}
+                  className={`px-3 py-1.5 rounded-xl text-[11px] font-medium transition-all whitespace-nowrap ${
+                    active
+                      ? "bg-sky-500/20 text-sky-300 border border-sky-400/30"
+                      : "text-white/40 hover:bg-white/10 hover:text-white/60"
+                  }`}
+                >
+                  {formatLabel(d)}
+                </button>
+              )
+            })}
+          </div>
+        </>
+      )}
+
+      {/* Card */}
+      <div className="glass glass-hover noise rounded-3xl p-[1px]">
+      <div className="relative rounded-[calc(1.75rem-1px)]">
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-red-500/0 via-red-500/60 to-red-500/0" />
 
         {/* Header */}
@@ -150,6 +208,21 @@ export const WeiboHotSearch = () => {
             </div>
           </div>
           <div className="flex items-center gap-1.5">
+            {/* Date picker button (dropdown rendered outside card) */}
+            <div className="relative">
+              <button
+                onClick={() => setDateOpen(!dateOpen)}
+                className={`w-8 h-8 rounded-[50%] grid place-items-center active:scale-90 transition-all ${
+                  selectedDate
+                    ? "bg-sky-500/20 text-sky-400 shadow-[0_0_10px_hsla(200,100%,55%,0.25)]"
+                    : "bg-white/5 text-white/30 hover:bg-white/10"
+                }`}
+              >
+                <Calendar size={13} />
+              </button>
+            </div>
+
+            {/* Filter: tagged categories only */}
             <button
               onClick={() => setTaggedOnly(!taggedOnly)}
               className={`w-8 h-8 rounded-[50%] grid place-items-center active:scale-90 transition-all ${
@@ -160,8 +233,10 @@ export const WeiboHotSearch = () => {
             >
               <Tags size={13} />
             </button>
+
+            {/* Refresh */}
             <button
-              onClick={fetchData}
+              onClick={handleRefresh}
               className="w-8 h-8 rounded-[50%] bg-white/5 grid place-items-center hover:bg-white/10 active:scale-90 transition-all"
             >
               <RefreshCw size={13} className="text-white/40" />
@@ -255,6 +330,7 @@ export const WeiboHotSearch = () => {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   )
 }
