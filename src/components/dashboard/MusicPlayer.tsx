@@ -18,29 +18,29 @@ interface Track {
 
 const PLAYLIST: Track[] = [
   {
-    title: "Chasing Shadows",
-    artist: "Alicia Branx",
-    src: "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/vHhzAGYH0Ieo4nOPVz82wdBoh2IbGU2uWCPgRoCQ.mp3",
+    title: "SoundHelix 1",
+    artist: "SoundHelix",
+    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
   },
   {
-    title: "Does She Love You",
-    artist: "Alicia Branx",
-    src: "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/7t3CqMF7ZqBjNnPBb5DZuk4MAp8sQixHNdUfDC5B.mp3",
+    title: "SoundHelix 2",
+    artist: "SoundHelix",
+    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
   },
   {
-    title: "I'm Sorry",
-    artist: "Alicia Branx",
-    src: "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/iPl3n3WbbopjCLMXOZyPzw1kQ8kGRf6cqlg2q0EH.mp3",
+    title: "SoundHelix 4",
+    artist: "SoundHelix",
+    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
   },
   {
-    title: "If Only",
-    artist: "Alicia Branx",
-    src: "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/SbnxqkPzrR93T5l14k4b4GaTIsyFnqKQCJt46yH8.mp3",
+    title: "SoundHelix 5",
+    artist: "SoundHelix",
+    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
   },
   {
-    title: "Sing a Solo",
-    artist: "Alicia Branx",
-    src: "https://files.freemusicarchive.org/storage-freemusicarchive-org/tracks/lsHF1K7yDnm9E1n9sTHlA8sN1WECjmWEuvOMyWFm.mp3",
+    title: "SoundHelix 6",
+    artist: "SoundHelix",
+    src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3",
   },
 ];
 
@@ -192,11 +192,11 @@ bg-gradient-to-br from-neon-purple via-neon-pink to-neon-cyan grid place-items-c
           <p className="text-[11px] font-semibold truncate leading-tight">{track.title}</p>
           <p className="text-[9px] text-white/35 truncate leading-tight">{track.artist}</p>
           <div
-            className="mt-1 h-[3px] rounded-full bg-white/8 overflow-hidden cursor-pointer group/progress hover:h-[4px] transition-all"
+            className="mt-1 h-[4px] rounded-full bg-white/20 overflow-hidden cursor-pointer group/progress transition-all"
             onClick={seek}
           >
             <div
-              className="h-full rounded-full bg-gradient-to-r from-neon-purple to-neon-cyan transition-[width] duration-300 ease-linear shadow-[0_0_6px_hsl(var(--neon-purple)/0.5)]"
+              className="h-full rounded-full bg-gradient-to-r from-rose-400 to-amber-300 transition-[width] duration-300 ease-linear shadow-[0_0_6px_rgba(251,146,60,0.4)]"
               style={{ width: `${progress * 100}%` }}
             />
           </div>
@@ -221,10 +221,10 @@ grid place-items-center text-white/25 hover:text-white/60 hover:bg-white/5 trans
             className="w-9 h-9 rounded-full grid place-items-center transition-all duration-200 hover:scale-105 active:scale-95 ring-1 ring-white/10"
             style={{
               background: playing
-                ? "linear-gradient(135deg, #a78bfa, #22d3ee, #f472b6)"
+                ? "linear-gradient(135deg, #7c3aed, #6366f1)"
                 : "rgba(255,255,255,0.12)",
               boxShadow: playing
-                ? "0 0 25px -5px rgba(167,139,250,0.6)"
+                ? "0 0 25px -5px rgba(124,58,237,0.5)"
                 : "none",
             }}
           >
