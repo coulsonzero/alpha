@@ -102,3 +102,74 @@ server {
 
 
 
+
+### DDNS（Dynamic DNS，动态域名解析）
+使用了vpn，用了国外的ip，它自动帮你更新域名绑定的 IP。
+1. 先去阿里云 DNS 手动把 IP 改成 103.172.183.82（马上生效）
+2. 可以让ai一个 DDNS 脚本在 Mac 上，以后 IP 再变就自动更新了，不用再手动改
+
+如果装DDNS，我如何手动关闭？
+临时关（进程级别）：
+`pkill -f ddns`
+
+彻底关（移除定时任务）：
+如果用 launchd
+launchctl unload ~/Library/LaunchAgents/com.user.ddns.plist
+rm ~/Library/LaunchAgents/com.user.ddns.plist
+
+如果用 crontab
+crontab -e  # 删除 ddns 那行
+
+关掉后想再用：重新运行脚本就行。
+
+先获取阿里云的 AccessKey，DDNS 脚本用这个 API 密钥来修改 DNS 记录。
+https://ram.console.aliyun.com/users
+
+### 使用linux部署
+`sudo -i`切换到root用户，此时linux命令就不需要加`sudo`了, 项目不要用root用户
+```sh
+sudo apt update
+sudo apt install nginx -y
+systemctl start nginx      # 启动
+systemctl enable nginx     # 设置开机自启
+curl http://localhost       # 验证是否跑起来了
+
+sudo apt install vim        # 安装 vim
+sudo vim /etc/nginx/conf.d/web-alpha.conf
+```
+```nginx
+server {
+    listen 80;
+    server_name alpha.coulsonzero.shop;
+
+    root /root/Desktop/dist;    # 改成你的 dist 目录实际路径
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://backend:8000;  # Gin 后端地址
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+
+然后执行：esc :wq 保存退出
+```sh
+# 测试配置是否正确
+sudo nginx -t
+
+# 重新加载配置
+sudo nginx -s reload
+```
+
+docker
+```sh
+sudo apt install docker.ioc -y
+git clone https://github.com/coulsonzero/go-alpha.git
+cd go-alpha
+make docker-build
+```
+无法安装docker compose！
