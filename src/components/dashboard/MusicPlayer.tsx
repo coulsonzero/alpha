@@ -304,16 +304,17 @@ grid place-items-center transition-all duration-200 ${
             <div
               className="absolute top-full right-0 mt-2 w-64 rounded-2xl overflow-hidden z-50"
               style={{
-                background: "linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.65))",
+                background: "linear-gradient(135deg, rgba(10,10,15,0.75), rgba(10,10,15,0.50))",
                 backdropFilter: "blur(48px) saturate(200%)",
-                border: "1px solid rgba(255,255,255,0.2)",
-                boxShadow: "0 24px 64px -12px rgba(0,0,0,0.12)",
+                WebkitBackdropFilter: "blur(48px) saturate(200%)",
+                border: "1px solid rgba(255,255,255,0.06)",
+                boxShadow: "0 24px 64px -12px rgba(0,0,0,0.5)",
                 animation: "dropdown-in 0.25s ease-out forwards",
               }}
             >
-              <div className="px-4 pt-3 pb-2 border-b border-black/[0.06]">
-                <p className="text-[10px] font-semibold text-black/40 uppercase tracking-[0.15em]">Playlist</p>
-                <p className="text-[11px] text-black/40 mt-0.5">{playlist.length} tracks</p>
+              <div className="px-4 pt-3 pb-2 border-b border-white/[0.08]">
+                <p className="text-[10px] font-semibold text-white/60 uppercase tracking-[0.15em]">Playlist</p>
+                <p className="text-[11px] text-white/40 mt-0.5">{playlist.length} tracks</p>
               </div>
               <div className="p-2 max-h-[260px] overflow-y-auto scrollbar-none">
                 {playlist.map((t, i) => (
@@ -331,15 +332,15 @@ grid place-items-center transition-all duration-200 ${
                     className={`w-full text-left px-3 py-2.5 rounded-xl
 flex items-center gap-3 transition-all duration-200 ${
                       i === trackIdx
-                        ? "bg-black/[0.06]"
-                        : "hover:bg-black/[0.03]"
+                        ? "bg-white/[0.08]"
+                        : "hover:bg-white/[0.05]"
                     }`}
                   >
                     <div className={`w-7 h-7 rounded-[50%]
 grid place-items-center shrink-0 text-[10px] font-bold transition-all duration-200 ${
                       i === trackIdx
                         ? "bg-gradient-to-br from-violet-400 to-cyan-400 text-white"
-                        : "text-black/40 bg-black/[0.04]"
+                        : "text-white/40 bg-white/[0.08]"
                     }`}>
                       {i === trackIdx && playing ? (
                         <span className="flex gap-[2px] items-center">
@@ -353,11 +354,11 @@ grid place-items-center shrink-0 text-[10px] font-bold transition-all duration-2
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`text-[12px] font-medium truncate leading-tight ${
-                        i === trackIdx ? "text-black/90" : "text-black/60"
+                        i === trackIdx ? "text-white" : "text-white/70"
                       }`}>
                         {t.title}
                       </p>
-                      <p className="text-[9px] text-black/30 truncate mt-0.5">{t.artist}</p>
+                      <p className="text-[9px] text-white/40 truncate mt-0.5">{t.artist}</p>
                     </div>
                     {i === trackIdx && (
                       <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "#22d3ee", boxShadow: "0 0 8px rgba(6,182,212,0.6)" }} />
