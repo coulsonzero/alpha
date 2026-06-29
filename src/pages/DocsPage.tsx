@@ -1,5 +1,4 @@
 import { useState, useRef, useMemo } from "react";
-import "highlight.js/styles/github-dark.css";
 import { BookOpen, Bookmark, ArrowLeft } from "lucide-react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 
