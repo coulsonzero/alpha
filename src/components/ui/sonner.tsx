@@ -11,12 +11,21 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
       toastOptions={{
+        style: {
+          background: "rgba(255,255,255,0.06)",
+          backdropFilter: "blur(32px) saturate(160%)",
+          WebkitBackdropFilter: "blur(32px) saturate(160%)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          color: "rgba(255,255,255,0.85)",
+          boxShadow: "0 20px 60px -10px rgba(0,0,0,0.6), inset 0 1px 0 0 rgba(255,255,255,0.07)",
+          borderRadius: "14px",
+          padding: "12px 16px",
+          fontSize: "13px",
+        },
         classNames: {
-          toast:
-            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
-          description: "group-[.toast]:text-muted-foreground",
-          actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
-          cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+          description: "text-white/50 text-xs",
+          success: "border-l-2 border-l-[#22d3ee]",
+          error: "border-l-2 border-l-[#fb7185]",
         },
       }}
       {...props}

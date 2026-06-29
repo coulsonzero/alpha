@@ -1,21 +1,81 @@
-import { useState } from "react";
-import { User, Lock } from "lucide-react";
+import { useState, useRef } from "react";
+import { User, Lock, Loader2, Camera } from "lucide-react";
+import { toast } from "sonner";
+import { login, register } from "@/api/auth";
 
 interface AuthModalProps {
   onClose: () => void;
   initialMode?: "login" | "signup";
+  onAuthSuccess?: () => void;
 }
 
-export const AuthModal = ({ onClose, initialMode = "login" }: AuthModalProps) => {
+export const AuthModal = ({ onClose, initialMode = "login", onAuthSuccess }: AuthModalProps) => {
   const [mode, setMode] = useState<"login" | "signup">(initialMode);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [avatar, setAvatar] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatar(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setAvatarPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!username.trim() || !password.trim()) {
+      toast.error("Username and password are required");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (mode === "login") {
+        const res = await login({ username: username.trim(), password });
+        localStorage.setItem("token", res.data.data.token);
+        toast.success("Signed in successfully");
+        onAuthSuccess?.();
+        onClose();
+      } else {
+        if (avatar) {
+          const formData = new FormData();
+          formData.append("username", username.trim());
+          formData.append("password", password);
+          if (email.trim()) formData.append("email", email.trim());
+          formData.append("avatar", avatar);
+          const res = await register(formData, true);
+          localStorage.setItem("token", res.data.data.token);
+        } else {
+          const res = await register({ username: username.trim(), password, email: email.trim() || undefined });
+          localStorage.setItem("token", res.data.data.token);
+        }
+        toast.success("Account created successfully");
+        onAuthSuccess?.();
+        setMode("login");
+        setAvatar(null);
+        setAvatarPreview(null);
+      }
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Something went wrong";
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center">
-      {/* Backdrop */}
       <div className="absolute inset-0" onClick={onClose} />
-      {/* Modal */}
       <div className="relative w-[400px] glass-strong rounded-2xl p-8 animate-dropdown-in">
-        {/* Close */}
         <button
           className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors"
           onClick={onClose}
@@ -25,7 +85,6 @@ export const AuthModal = ({ onClose, initialMode = "login" }: AuthModalProps) =>
           </svg>
         </button>
 
-        {/* Header */}
         <div className="text-center mb-7">
           <h2 className="text-xl font-semibold text-white">
             {mode === "login" ? "Welcome back" : "Create account"}
@@ -37,14 +96,12 @@ export const AuthModal = ({ onClose, initialMode = "login" }: AuthModalProps) =>
           </p>
         </div>
 
-        {/* Social icon buttons */}
         <div className="flex items-center justify-center gap-3 mb-6">
           <SocialIconButton icon={<GithubIcon />} />
           <SocialIconButton icon={<XIcon />} />
           <SocialIconButton icon={<GoogleIcon />} />
         </div>
 
-        {/* Divider */}
         <div className="flex items-center gap-3 mb-6">
           <div className="flex-1 h-px bg-white/[0.06]" />
           <span className="text-[10px] text-white/30 uppercase tracking-widest font-medium">
@@ -53,8 +110,33 @@ export const AuthModal = ({ onClose, initialMode = "login" }: AuthModalProps) =>
           <div className="flex-1 h-px bg-white/[0.06]" />
         </div>
 
-        {/* Username / Password */}
-        <form className="space-y-3.5" onSubmit={(e) => e.preventDefault()}>
+        <form className="space-y-3.5" onSubmit={handleSubmit}>
+          {mode === "signup" && (
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="relative w-16 h-16 rounded-full overflow-hidden bg-white/5 border border-white/[0.06] hover:border-white/15 transition-all group"
+              >
+                {avatarPreview ? (
+                  <img src={avatarPreview} alt="avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <Camera size={18} className="text-white/40 absolute inset-0 m-auto" />
+                )}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity grid place-items-center">
+                  <Camera size={16} className="text-white" />
+                </div>
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
+            </div>
+          )}
+
           <div>
             <label className="block text-[10px] text-white/40 uppercase tracking-wider mb-1.5 font-medium">
               Username
@@ -64,11 +146,31 @@ export const AuthModal = ({ onClose, initialMode = "login" }: AuthModalProps) =>
               <input
                 type="text"
                 placeholder="your username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="w-full h-10 pl-9 pr-3 rounded-xl text-xs text-white bg-white/5 border border-white/[0.06] placeholder:text-white/20
                   focus:outline-none focus:border-neon-cyan/50 focus:bg-white/[0.07] transition-all"
               />
             </div>
           </div>
+
+          {mode === "signup" && (
+            <div>
+              <label className="block text-[10px] text-white/40 uppercase tracking-wider mb-1.5 font-medium">
+                Email <span className="text-white/20">(optional)</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full h-10 px-3 rounded-xl text-xs text-white bg-white/5 border border-white/[0.06] placeholder:text-white/20
+                    focus:outline-none focus:border-neon-cyan/50 focus:bg-white/[0.07] transition-all"
+                />
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-[10px] text-white/40 uppercase tracking-wider mb-1.5 font-medium">
@@ -79,6 +181,8 @@ export const AuthModal = ({ onClose, initialMode = "login" }: AuthModalProps) =>
               <input
                 type="password"
                 placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full h-10 pl-9 pr-3 rounded-xl text-xs text-white bg-white/5 border border-white/[0.06] placeholder:text-white/20
                   focus:outline-none focus:border-neon-cyan/50 focus:bg-white/[0.07] transition-all"
               />
@@ -87,7 +191,7 @@ export const AuthModal = ({ onClose, initialMode = "login" }: AuthModalProps) =>
 
           {mode === "login" && (
             <div className="text-right">
-              <button className="text-[10px] text-white/30 hover:text-neon-cyan transition-colors">
+              <button type="button" className="text-[10px] text-white/30 hover:text-neon-cyan transition-colors">
                 Forgot password?
               </button>
             </div>
@@ -95,11 +199,13 @@ export const AuthModal = ({ onClose, initialMode = "login" }: AuthModalProps) =>
 
           <button
             type="submit"
+            disabled={loading}
             className="w-full h-10 rounded-xl text-xs font-semibold text-white
               bg-gradient-to-r from-neon-purple to-neon-cyan
-              hover:opacity-90 transition-opacity active:scale-[0.98]"
+              hover:opacity-90 disabled:opacity-50 transition-opacity active:scale-[0.98] flex items-center justify-center gap-2"
           >
-            {mode === "login" ? "Sign In" : "Create Account"}
+            {loading && <Loader2 size={14} className="animate-spin" />}
+            {loading ? "Please wait..." : mode === "login" ? "Sign In" : "Create Account"}
           </button>
         </form>
 
@@ -107,7 +213,7 @@ export const AuthModal = ({ onClose, initialMode = "login" }: AuthModalProps) =>
           {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
           <button
             className="text-neon-cyan hover:text-white transition-colors font-medium"
-            onClick={() => setMode(mode === "login" ? "signup" : "login")}
+            onClick={() => { setMode(mode === "login" ? "signup" : "login"); setAvatarPreview(null); setAvatar(null); }}
           >
             {mode === "login" ? "Sign Up" : "Sign In"}
           </button>
@@ -116,8 +222,6 @@ export const AuthModal = ({ onClose, initialMode = "login" }: AuthModalProps) =>
     </div>
   );
 };
-
-/* ─── Social icon button (icon only) ─── */
 
 const SocialIconButton = ({ icon }: { icon: React.ReactNode }) => (
   <button
@@ -128,8 +232,6 @@ const SocialIconButton = ({ icon }: { icon: React.ReactNode }) => (
     {icon}
   </button>
 );
-
-/* ─── Social Icons ─── */
 
 const GithubIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">

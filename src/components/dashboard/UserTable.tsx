@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Mail, Shield, MoreHorizontal, Globe } from "lucide-react";
 import { getUsers } from "@/api/user";
+import { resolveAvatar } from "@/lib/avatar";
+import { useAuth } from "@/components/dashboard/AuthProvider";
 
 interface User {
   ID?: number;
@@ -25,8 +27,10 @@ export const UserTable = ({ className = "" }: UserTableProps) => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const { user } = useAuth();
 
-  useEffect(() => {
+  const fetchUsers = useCallback(() => {
+    setLoading(true);
     getUsers()
       .then((res) => {
         const data = res.data?.data ?? res.data ?? [];
@@ -35,6 +39,15 @@ export const UserTable = ({ className = "" }: UserTableProps) => {
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  // refresh user list when login state changes
+  useEffect(() => {
+    fetchUsers();
+  }, [user, fetchUsers]);
 
   const userList = users.map((u) => ({
     name: u.username || "Unknown",
@@ -107,8 +120,8 @@ export const UserTable = ({ className = "" }: UserTableProps) => {
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="w-8 h-8 rounded-[50%] shrink-0
 bg-gradient-to-br from-neon-pink via-neon-purple to-neon-blue grid place-items-center text-[10px] font-bold overflow-hidden">
-                      {u.avatar ? (
-                        <img src={u.avatar} alt="" className="w-full h-full object-cover" />
+                      {resolveAvatar(u.avatar) ? (
+                        <img src={resolveAvatar(u.avatar)!} alt="" className="w-full h-full object-cover" />
                       ) : (
                         u.name.charAt(0).toUpperCase()
                       )}

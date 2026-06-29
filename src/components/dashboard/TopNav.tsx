@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Bell, X } from "lucide-react";
 import { VisitorCounter } from "./VisitorCounter";
 import { useAuth } from "./AuthProvider";
+import { resolveAvatar } from "@/lib/avatar";
 
 const notifications = [
   { text: "New enterprise signup — Acme Industries", time: "2m ago", unread: true },
@@ -18,7 +19,7 @@ export const TopNav = () => {
   const [profileDropdownPos, setProfileDropdownPos] = useState({ top: 0, right: 0 });
   const bellRef = useRef<HTMLButtonElement>(null);
   const avatarRef = useRef<HTMLButtonElement>(null);
-  const { openAuth } = useAuth();
+  const { user, openAuth, logout } = useAuth();
 
   const updateDropdownPos = useCallback(() => {
     if (bellRef.current) {
@@ -64,6 +65,23 @@ export const TopNav = () => {
     };
   }, [profileOpen, updateProfilePos]);
 
+  const [avatarErr, setAvatarErr] = useState(false);
+  const prevUserIdRef = useRef(user?.id);
+
+  useEffect(() => {
+    if (prevUserIdRef.current !== user?.id) {
+      setAvatarErr(false);
+      prevUserIdRef.current = user?.id;
+    }
+  }, [user?.id]);
+
+  const initials = user?.username
+    ? user.username.slice(0, 2).toUpperCase()
+    : "AM";
+
+  const isLoading = user === undefined;
+  const avatarUrl = !avatarErr && user?.avatar ? resolveAvatar(user.avatar) : null;
+
   return (
     <header className="flex items-center gap-4 mb-8 animate-fade-in">
       <div>
@@ -75,7 +93,7 @@ export const TopNav = () => {
           })}
         </p>
         <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
-          Welcome back, <span className="gradient-text">Alex</span>
+          Welcome back, <span className="gradient-text">{user?.username || "Alex"}</span>
         </h1>
       </div>
 
@@ -96,13 +114,17 @@ export const TopNav = () => {
         {/* User avatar */}
         <button
           ref={avatarRef}
-          className="w-11 h-11 rounded-[50%] grid place-items-center active:scale-[0.95] transition-transform"
+          className="w-11 h-11 rounded-[50%] grid place-items-center active:scale-[0.95] transition-transform overflow-hidden"
           style={{ background: "rgba(255,255,255,0.04)", backdropFilter: "blur(32px)", border: "none" }}
           onClick={() => setProfileOpen(!profileOpen)}
         >
-          <div className="w-9 h-9 rounded-[50%] bg-gradient-to-br from-neon-pink via-neon-purple to-neon-blue grid place-items-center text-xs font-bold">
-            AM
-          </div>
+          {isLoading ? null : avatarUrl ? (
+            <img src={avatarUrl} alt={user?.username} className="w-full h-full object-cover" onError={() => setAvatarErr(true)} />
+          ) : (
+            <div className="w-9 h-9 rounded-[50%] bg-gradient-to-br from-neon-pink via-neon-purple to-neon-blue grid place-items-center text-xs font-bold">
+              {initials}
+            </div>
+          )}
         </button>
       </div>
 
@@ -118,22 +140,42 @@ export const TopNav = () => {
                 right: `${profileDropdownPos.right}px`,
               }}
             >
-              <button
-                className="w-full text-left px-3 py-2.5 rounded-xl text-xs text-white/80 hover:bg-white/5 transition-colors"
-                onClick={() => { setProfileOpen(false); openAuth("login"); }}
-              >
-                Sign In
-              </button>
-              <button
-                className="w-full text-left px-3 py-2.5 rounded-xl text-xs text-white/80 hover:bg-white/5 transition-colors"
-                onClick={() => { setProfileOpen(false); openAuth("signup"); }}
-              >
-                Sign Up
-              </button>
-              <hr className="border-white/5 my-1" />
-              <button className="w-full text-left px-3 py-2.5 rounded-xl text-xs text-white/40 hover:bg-white/5 transition-colors">
-                Settings
-              </button>
+              {user ? (
+                <>
+                  <div className="px-3 py-2 border-b border-white/5 mb-1">
+                    <p className="text-xs font-medium text-white">{user.username}</p>
+                    {user.email && <p className="text-[10px] text-white/40 truncate">{user.email}</p>}
+                  </div>
+                  <button className="w-full text-left px-3 py-2.5 rounded-xl text-xs text-white/40 hover:bg-white/5 transition-colors">
+                    Settings
+                  </button>
+                  <button
+                    className="w-full text-left px-3 py-2.5 rounded-xl text-xs text-white/40 hover:bg-white/5 transition-colors"
+                    onClick={() => { setProfileOpen(false); logout(); }}
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    className="w-full text-left px-3 py-2.5 rounded-xl text-xs text-white/80 hover:bg-white/5 transition-colors"
+                    onClick={() => { setProfileOpen(false); openAuth("login"); }}
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    className="w-full text-left px-3 py-2.5 rounded-xl text-xs text-white/80 hover:bg-white/5 transition-colors"
+                    onClick={() => { setProfileOpen(false); openAuth("signup"); }}
+                  >
+                    Sign Up
+                  </button>
+                  <hr className="border-white/5 my-1" />
+                  <button className="w-full text-left px-3 py-2.5 rounded-xl text-xs text-white/40 hover:bg-white/5 transition-colors">
+                    Settings
+                  </button>
+                </>
+              )}
             </div>
           </div>,
           document.body,
