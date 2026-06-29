@@ -156,6 +156,7 @@ export default function DocsPage() {
             setSelectedIdx={setSelectedIdx}
             catCounts={catCounts}
             CAT_COLORS={CAT_COLORS}
+            onNavigate={() => setShowNewEditor(false)}
           />
         </div>
 
@@ -182,7 +183,7 @@ export default function DocsPage() {
             <div className="px-6 pt-4 pb-2 flex items-center border-b border-white/[0.02] transition-all duration-300">
               <div className="flex items-center gap-6 flex-1">
                 {["Docs", "Timeline", "Profile"].map((t, i) => (
-                <button key={t} onClick={() => setActiveTab(i)}
+                <button key={t} onClick={() => { setActiveTab(i); setShowNewEditor(false); }}
                   className={`text-[12px] font-medium pb-2.5 border-b-2 transition-all duration-300 ${activeTab === i ? "text-white border-blue-400" : "text-white/30 border-transparent hover:text-white/60"}`}>{t}</button>
               ))}
               </div>

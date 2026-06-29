@@ -6,15 +6,16 @@ interface DocsSidebarProps {
   setSelectedIdx: (idx: number | null) => void;
   catCounts: number[];
   CAT_COLORS: Record<string, string>;
+  onNavigate?: () => void;
 }
 
-export const DocsSidebar = ({ CATEGORIES, activeCat, setActiveCat, setSelectedIdx, catCounts, CAT_COLORS }: DocsSidebarProps) => {
+export const DocsSidebar = ({ CATEGORIES, activeCat, setActiveCat, setSelectedIdx, catCounts, CAT_COLORS, onNavigate }: DocsSidebarProps) => {
   return (
     <div className="flex-1 overflow-y-auto scrollbar-none p-3 space-y-1">
       {CATEGORIES.map((cat, i) => {
         const Icon = cat.icon;
         return (
-          <button key={cat.label} onClick={() => { setActiveCat(i); setSelectedIdx(null); }}
+          <button key={cat.label} onClick={() => { setActiveCat(i); setSelectedIdx(null); onNavigate?.(); }}
             className={`w-full text-left px-3 py-2.5 rounded-xl text-[12px] font-medium transition-all duration-300 flex items-center gap-3 ${
               i === activeCat
                 ? "text-white border border-blue-400/15"
