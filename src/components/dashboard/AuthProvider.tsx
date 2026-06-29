@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { AuthModal } from "./AuthModal";
 import { getMe, logout as logoutApi } from "@/api/auth";
+import { toast } from "sonner";
 
 // undefined = still loading, null = logged out, User = logged in
 type UserState = User | null | undefined;
@@ -54,7 +55,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       value={{
         user,
         openAuth: (mode) => { setInitialMode(mode ?? "login"); setAuthOpen(true); },
-        logout: () => { logoutApi().catch(() => {}); localStorage.removeItem("token"); setUser(null); },
+        logout: () => {
+          logoutApi().catch(() => {});
+          localStorage.removeItem("token");
+          setUser(null);
+          toast.success("Signed out");
+        },
         refreshUser,
       }}
     >

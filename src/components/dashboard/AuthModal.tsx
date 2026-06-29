@@ -52,14 +52,11 @@ export const AuthModal = ({ onClose, initialMode = "login", onAuthSuccess }: Aut
           formData.append("password", password);
           if (email.trim()) formData.append("email", email.trim());
           formData.append("avatar", avatar);
-          const res = await register(formData, true);
-          localStorage.setItem("token", res.data.data.token);
+          await register(formData, true);
         } else {
-          const res = await register({ username: username.trim(), password, email: email.trim() || undefined });
-          localStorage.setItem("token", res.data.data.token);
+          await register({ username: username.trim(), password, email: email.trim() || undefined });
         }
         toast.success("Account created successfully");
-        onAuthSuccess?.();
         setMode("login");
         setAvatar(null);
         setAvatarPreview(null);
