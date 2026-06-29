@@ -29,6 +29,13 @@ TODO: Document your project here
 本地路由器要加5000端口号配置
 阿里云使用A指向家庭公网ip地址，不是wifi的公网ip地址
 只在局域网(内网)使用的话可以使用80端口，外网不行！
+本地dist目录不能删除！
+部署流程是这样的：
+域名 alpha.coulsonzero.shop
+  ↓ DNS 解析到你家宽带 39.172.238.215
+  ↓ 路由器转发到 Mac 192.168.31.194:5000
+  ↓ Mac 的 Nginx 读取本地 dist/ 目录 → 返回前端页面
+dist/ 在你自己 Mac 上，删了 Nginx 就找不到文件了，所以报 500
 
 1. 阿里云 DNS 解析设置
 添加一条 A 记录：
