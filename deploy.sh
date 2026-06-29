@@ -19,5 +19,3 @@ git commit -m 'deploy alpha'
 git push -f git@github.com:coulsonzero/alpha.git HEAD:gh-pages
 
 cd -
-
-rm -rf dist
