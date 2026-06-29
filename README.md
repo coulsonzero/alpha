@@ -2,26 +2,80 @@
 
 TODO: Document your project here
 
-### 域名解析
-❯ 我希望通过http://alpha.coulsonzero.shop访问，而且www已经给其它项目用过了，请给出解决方法
-明白，域名改成 alpha.coulsonzero.shop。以下是完整方案：
+## 前端部署
+
+### 外网项目部署（最终方案）
+澄清一下这几个 IP 的区别：
+
+┌────────────────┬───────────────────┬──────────────────────────────────────┐
+│       IP       │      是什么        │                 作用                  │
+├────────────────┼───────────────────┼──────────────────────────────────────┤
+│ 39.172.238.215 │ 你家宽带的公网 IP   │ 外网访问你家网络用的                     │
+├────────────────┼───────────────────┼──────────────────────────────────────┤
+│ 192.168.31.1   │ 路由器的管理地址     │ 你连上家里 WiFi 后，进路由器后台用的      │
+├────────────────┼───────────────────┼──────────────────────────────────────┤
+│ 192.168.31.194 │ 你 Mac 的内网 IP   │ 路由器把你家所有设备分的内网地址           │
+└────────────────┴───────────────────┴──────────────────────────────────────┘
+流程是：
+用户访问 alpha.coulsonzero.shop:5000
+        ↓ DNS 解析
+39.172.238.215（你家宽带）
+        ↓ 路由器收到请求
+根据端口转发规则 → 192.168.31.194:5000（你的 Mac）
+
+
+访问方式：http://aplha.coulsonzero.shop:5000
+或使用wifi的ip地址访问
+本地路由器要加5000端口号配置
+阿里云使用A指向家庭公网ip地址，不是wifi的公网ip地址
+只在局域网(内网)使用的话可以使用80端口，外网不行！
+
 1. 阿里云 DNS 解析设置
 添加一条 A 记录：
 ┌──────────┬──────────┬────────────────┬─────┐
 │ 记录类型  │  主机记录  │     记录值      │ TTL │
 ├──────────┼──────────┼────────────────┼─────┤
-│ A        │ alpha    │ 103.172.183.82 │ 600 │
+│ A        │ alpha    │ 39.172.238.215 │ 600 │
 └──────────┴──────────┴────────────────┴─────┘
-这样 alpha.coulsonzero.shop 就指向你的阿里云服务器了。之前说的 api 记录要不要加看你自己（如果后端也走独立子域名就加）。
+ip：通过claude查询公网ip地址即可
 
-2. 阿里云 Nginx 配置
-创建 /etc/nginx/conf.d/alpha.coulsonzero.shop.conf：
+2. wifi路由器配置
+打开`http://192.168.31.1`一般是固定内网路由器管理网址
+输入wifi密码-高级设置-端口转发-添加规则(5000-192.168.31.194-5000)
+使用的是本机wifi的ip地址
+
+3. 前端配置
+新增文件
+┌──────────────────┬──────────────────────────────────────────────────────┐
+│       文件        │                         说明                         │
+├──────────────────┼──────────────────────────────────────────────────────┤
+│ .env.development │ 本地开发环境变量                                        │
+├──────────────────┼──────────────────────────────────────────────────────┤
+│ .env.production  │ 生产环境变量（API 指向 alpha.coulsonzero.shop:5000）    │
+└──────────────────┴──────────────────────────────────────────────────────┘
+修改文件
+┌────────────────────┬────────────────────────────────────────────────────┐
+│        文件         │                        说明                        │
+├────────────────────┼────────────────────────────────────────────────────┤
+│ src/api/request.js │ API 地址改为读取 import.meta.env.VITE_API_BASE_URL  │
+└────────────────────┴────────────────────────────────────────────────────┘
+另外 ，还在系统层面创建了：
+┌──────────────────────────────────────────────────┬────────────────────────────────────────┐
+│                       文件                        │                  说明                  │
+├──────────────────────────────────────────────────┼────────────────────────────────────────┤
+│ ~/nginx/conf/conf.d/alpha.coulsonzero.shop.conf  │ Nginx 配置，监听 5000，转发 API 到后端 │
+├──────────────────────────────────────────────────┼────────────────────────────────────────┤
+│ /etc/hosts 加了 127.0.0.1 alpha.coulsonzero.shop  │ 本地域名解析                           │
+└──────────────────────────────────────────────────┴────────────────────────────────────────┘
+不佳hosts：导致你在家里用域名 http://alpha.coulsonzero.shop:5000反而打不开自己的网站
+4. 终端执行：
+`vim ~/nginx/conf/conf.d/alpha.coulsonzero.shop.conf`
 ```nginx
 server {
-    listen 80;
+    listen 5000;
     server_name alpha.coulsonzero.shop;
 
-    root /var/www/alpha.coulsonzero.shop/dist;
+    root /Users/coulsonzero/Documents/web/alpha/dist;
     index index.html;
 
     location / {
@@ -32,73 +86,12 @@ server {
         proxy_pass http://localhost:8000;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_forwarded_for;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
 ```
-▎注意：root 路径和 www 的项目分开，避免冲突。
-3. 前端配置
-
-3.1 创建 .env.production
-```env
-VITE_API_BASE_URL=http://alpha.coulsonzero.shop/api/v1
-```
-3.2 修改 src/api/request.js
-```js
-const request = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL',
-  timeout: 5000
-})
-```
-3.3 vite.config.ts 保持 proxy(后端go用了CORS，可删除这个proxy前端cors代理)
-本地开发时 proxy 打开，请求走 localhost：
-```ts
-server: {
-  port: 5000,
-  proxy: {
-    "/api": {
-      target: "http://localhost:8000",
-      changeOrigin: true,
-    },
-  },
-},
-```
-4. 构建部署
-npm run build               # 生成 dist/
-把 dist/ 上传到服务器 /var/www/alpha.coulsonzero.shop/dist/
-然后 nginx -s reload
-
-流程总结：
-- 本地开发：npm run dev → localhost:5000，请求走 vite proxy 到 localhost:8000
-- 生产访问：http://alpha.coulsonzero.shop → nginx 代理到后端 localhost:8000
-- www 项目 不受影响，各自有独立的 nginx server block
 
 
-本机 hosts 配置（在终端执行）：
 
-echo '127.0.0.1 alpha.coulsonzero.shop' | sudo tee -a /etc/hosts
 
-然后本机就可以通过 http://alpha.coulsonzero.shop 访问 nginx 代理的服务了。
-
-### 直接将前端build的dist/目录放到后端
-1. 后端 go 项目中，把 dist/ 目录放到 public/ 目录下，然后修改 main.go
-```go
-// 修改
-// r := gin.Default()
-r := gin.New()
-
-// 修改
-// r.LoadHTMLGlob("templates/*")
-r.Static("/static", "./public")
-
-// 修改
-// r.GET("/index", func(c *gin.Context) {
-//     c.HTML(http.StatusOK, "index.html", nil)
-// })
-r.GET("/index", func(c *gin.Context) {
-    c.HTML(http.StatusOK, "public/index.html", nil)
-})
-```
-使用公网ip访问：
-如http://47.242.150.243:8000/index
