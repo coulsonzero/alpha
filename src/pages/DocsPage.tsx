@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from "react";
-import { BookOpen, Bookmark, ArrowLeft } from "lucide-react";
+import { BookOpen, Bookmark, ArrowLeft, Plus } from "lucide-react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 
 import {
@@ -12,6 +12,7 @@ import { DocGrid } from "@/components/doc/DocGrid";
 import { ArticleView } from "@/components/doc/ArticleView";
 import { TimelineTab } from "@/components/doc/TimelineTab";
 import { ProfileTab } from "@/components/doc/ProfileTab";
+import { NewDocEditor } from "@/components/doc/NewDocEditor";
 
 /* ─── Main ─── */
 export default function DocsPage() {
@@ -34,6 +35,9 @@ export default function DocsPage() {
   const [editContent, setEditContent] = useState("");
   const [articleMd, setArticleMd] = useState<string>("");
   const prevSelRef = useRef<number | null>(null);
+
+  // New doc editor
+  const [showNewEditor, setShowNewEditor] = useState(false);
 
   const pc = "border-white/[0.06] shadow-[0_10px_40px_-12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06),0_0_30px_rgba(76,201,240,0.06)] bg-white/[0.035] backdrop-blur-[24px]";
   const rc = "transition-all duration-300 hover:translate-y-[-3px] cursor-pointer rounded-2xl overflow-hidden border border-white/[0.06] shadow-[0_10px_40px_-12px_rgba(0,0,0,0.5)] hover:shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6),0_0_30px_rgba(76,201,240,0.08)] bg-white/[0.035] backdrop-blur-[24px]";
@@ -175,16 +179,36 @@ export default function DocsPage() {
             </div>
           </div>
           {!sel && (
-            <div className="px-6 pt-4 pb-2 flex items-center gap-6 border-b border-white/[0.02] transition-all duration-300">
-              {["Docs", "Timeline", "Profile"].map((t, i) => (
+            <div className="px-6 pt-4 pb-2 flex items-center border-b border-white/[0.02] transition-all duration-300">
+              <div className="flex items-center gap-6 flex-1">
+                {["Docs", "Timeline", "Profile"].map((t, i) => (
                 <button key={t} onClick={() => setActiveTab(i)}
                   className={`text-[12px] font-medium pb-2.5 border-b-2 transition-all duration-300 ${activeTab === i ? "text-white border-blue-400" : "text-white/30 border-transparent hover:text-white/60"}`}>{t}</button>
               ))}
+              </div>
+              {activeTab === 0 && (
+                <button
+                  onClick={() => setShowNewEditor(true)}
+                  className="flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(76,201,240,0.15), rgba(123,47,247,0.12))",
+                    border: "1px solid rgba(76,201,240,0.2)",
+                    color: "rgba(255,255,255,0.85)",
+                  }}
+                >
+                  <Plus size={13} />
+                  New Doc
+                </button>
+              )}
             </div>
           )}
 
           <div className="flex-1 overflow-y-auto scrollbar-none px-6 py-5 space-y-5">
-            {bodyContent}
+            {showNewEditor ? (
+              <NewDocEditor onClose={() => setShowNewEditor(false)} />
+            ) : (
+              bodyContent
+            )}
           </div>
         </div>
       </div>
