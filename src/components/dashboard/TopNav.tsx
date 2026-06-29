@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Bell, X } from "lucide-react";
+import { VisitorCounter } from "./VisitorCounter";
 
 const notifications = [
   { text: "New enterprise signup — Acme Industries", time: "2m ago", unread: true },
@@ -52,6 +53,8 @@ export const TopNav = () => {
       </div>
 
       <div className="ml-auto flex items-center gap-3">
+        <VisitorCounter />
+
         {/* Notification Bell */}
         <button
           ref={bellRef}
