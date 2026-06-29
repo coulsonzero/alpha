@@ -1,14 +1,11 @@
 import { BookOpen, Code2, Cloud, Database, Terminal, Zap, Bookmark } from "lucide-react";
 
-/* ─── Import all MD files from src/docs/ ─── */
+/* ─── Fallback local md import (used when backend is unreachable) ─── */
 export const mdModules = import.meta.glob("/src/docs/**/*.md", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
 
 export function filenameToTitle(path: string): string {
   const name = path.split("/").pop()?.replace(/\.md$/, "") || "";
-  return name
-    .replace(/^\d+-/, "")
-    .replace(/[-_]/g, " ")
-    .replace(/\b\w/g, c => c.toUpperCase());
+  return name.replace(/^\d+-/, "").replace(/[-_]/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 }
 
 export function pathToTag(path: string): string {
@@ -18,6 +15,7 @@ export function pathToTag(path: string): string {
 }
 
 export const TAGS = ["Frontend", "Backend", "Database", "DevOps", "API", "Resources"];
+export const TAG_LOWER = ["frontend", "backend", "database", "devops", "api", "resources"];
 
 export function loadMd(path: string, original: string): string {
   try { return localStorage.getItem(`docs-md:${path}`) ?? original; } catch { return original; }
@@ -26,22 +24,46 @@ export function saveMd(path: string, md: string) {
   try { localStorage.setItem(`docs-md:${path}`, md); } catch { /* quota exceeded */ }
 }
 
-const mdEntries = Object.entries(mdModules);
-export const ARTICLES = mdEntries.map(([path, content], i) => ({
-  title: filenameToTitle(path),
-  desc: content.split("\n").slice(1, 3).join(" ").replace(/[#*`]/g, "").trim().slice(0, 100) || "Documentation file.",
-  tag: TAGS.includes(pathToTag(path)) ? pathToTag(path) : "Resources",
-  readTime: `${Math.max(1, Math.floor((content.length / 3000) * 5) || 5)} min`,
-  date: "2026-06-15",
-  path: path.replace("/src/", ""),
-  updatedDaysAgo: Math.floor(Math.random() * 14) + 1,
-  md: loadMd(path, content),
-  featured: i === mdEntries.length - 1,
-  author: "Nebula Team",
-  avatar: "NT",
-  comments: Math.floor(Math.random() * 20),
-}));
+export type Article = {
+  title: string;
+  desc: string;
+  tag: string;
+  readTime: string;
+  date: string;
+  time?: string;
+  path: string;
+  updatedDaysAgo: number;
+  md: string;
+  featured?: boolean;
+  author: string;
+  avatar: string;
+  comments: number;
+  content: string;
+};
 
+/* ─── Build local fallback articles ─── */
+const mdEntries = Object.entries(mdModules);
+export const LOCAL_ARTICLES: Article[] = mdEntries.map(([path, content], i) => {
+  const tag = TAGS.includes(pathToTag(path).charAt(0).toUpperCase() + pathToTag(path).slice(1))
+    ? pathToTag(path) : "Resources";
+  return {
+    title: filenameToTitle(path),
+    desc: content.split("\n").slice(1, 3).join(" ").replace(/[#*`]/g, "").trim().slice(0, 100) || "Documentation file.",
+    tag,
+    readTime: `${Math.max(1, Math.floor((content.length / 3000) * 5) || 5)} min`,
+    date: "2026-06-15",
+    path: path.replace("/src/", ""),
+    updatedDaysAgo: Math.floor(Math.random() * 14) + 1,
+    md: loadMd(path, content),
+    featured: i === mdEntries.length - 1,
+    author: "Nebula Team",
+    avatar: "NT",
+    comments: Math.floor(Math.random() * 20),
+    content,
+  };
+});
+
+/* ─── Static configs (always present) ─── */
 export const CATEGORIES = [
   { label: "All Documents", icon: Bookmark },
   { label: "Frontend", icon: Code2 },
@@ -62,21 +84,13 @@ export const TAG_COLORS: Record<string, string> = {
 };
 
 export const CAT_COLORS: Record<string, string> = {
-  Frontend: "#a78bfa",
-  Backend: "#22d3ee",
-  Database: "#60a5fa",
-  DevOps: "#f59e0b",
-  API: "#f472b6",
-  Resources: "#34d399",
+  "All Documents": "#60a5fa", Frontend: "#a78bfa", Backend: "#22d3ee",
+  Database: "#60a5fa", DevOps: "#f59e0b", API: "#f472b6", Resources: "#34d399",
 };
 
 export const TAG_ICONS: Record<string, React.ElementType> = {
-  Frontend: Code2,
-  Backend: Cloud,
-  Database: Database,
-  DevOps: Terminal,
-  API: Zap,
-  Resources: BookOpen,
+  Frontend: Code2, Backend: Cloud, Database: Database,
+  DevOps: Terminal, API: Zap, Resources: BookOpen,
 };
 
 export interface Comment {
@@ -87,7 +101,6 @@ export interface Comment {
 
 export const EMOJI_LIST = Array.from("😀😂😎🥳🤩😇😅😆🤗😍🤔👍🎉👋💪🙌✨🚀💯");
 
-/* ─── Sample comments ─── */
 export const INITIAL_COMMENTS: Comment[] = [
   { id: 1, name: "Alex Morgan", email: "alex@morgan.dev", website: "alex.dev", avatar: "AM", time: "2 hours ago", content: "**Great article!** The blur example helped a lot 🚀 _Really appreciate it._", likes: 12, parentId: null, replies: [
     { id: 4, name: "Priya Kapoor", email: "priya@kapoor.design", website: "priya.design", avatar: "PK", time: "1 hour ago", content: "Glad it helped! More advanced techniques coming soon.", likes: 5, parentId: 1 },

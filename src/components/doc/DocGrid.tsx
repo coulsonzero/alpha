@@ -3,13 +3,13 @@ import { BookOpen, Clock, ArrowRight } from "lucide-react";
 /* ─── Doc Grid ─── */
 interface DocGridProps {
   activeCat: number;
-  ARTICLES: typeof import("@/components/doc/docsData").ARTICLES;
-  filteredArticles: typeof import("@/components/doc/docsData").ARTICLES;
-  featured: (typeof import("@/components/doc/docsData").ARTICLES)[number] | undefined;
+  ARTICLES: any[];
+  filteredArticles: any[];
+  featured: any | undefined;
   setSelectedIdx: (idx: number | null) => void;
   rc: string;
   TAG_COLORS: Record<string, string>;
-  TAG_ICONS: Record<string, React.ElementType>;
+  TAG_ICONS: Record<string, any>;
 }
 
 export const DocGrid = ({ activeCat, ARTICLES, filteredArticles, featured, setSelectedIdx, rc, TAG_COLORS, TAG_ICONS }: DocGridProps) => {

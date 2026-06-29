@@ -1,11 +1,11 @@
 import { useState, useRef, useMemo } from "react";
-import { BookOpen, Bookmark, ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 
-import {
-  ARTICLES, CATEGORIES, TAG_COLORS, CAT_COLORS, TAG_ICONS,
-  Comment, INITIAL_COMMENTS, saveMd,
-} from "@/components/doc/docsData";
+import { useArticles, CATEGORIES, TAG_COLORS, TAG_ICONS, CAT_COLORS } from "@/hooks/useArticles";
+import type { Article } from "@/hooks/useArticles";
+import { INITIAL_COMMENTS } from "@/components/doc/docsData";
+import type { Comment } from "@/components/doc/docsData";
 import { renderMarkdown } from "@/components/doc/DocRenderer";
 import { DocsSidebar } from "@/components/doc/DocsSidebar";
 import { DocGrid } from "@/components/doc/DocGrid";
@@ -16,9 +16,9 @@ import { NewDocEditor } from "@/components/doc/NewDocEditor";
 
 /* ─── Main ─── */
 export default function DocsPage() {
+  const { articles, loading, refresh } = useArticles();
   const [activeCat, setActiveCat] = useState(0);
   const [activeTab, setActiveTab] = useState(2);
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [comments, setComments] = useState<Comment[]>(INITIAL_COMMENTS);
   const [form, setForm] = useState({ name: "", email: "", website: "", content: "" });
@@ -42,31 +42,33 @@ export default function DocsPage() {
   const pc = "border-white/[0.06] shadow-[0_10px_40px_-12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06),0_0_30px_rgba(76,201,240,0.06)] bg-white/[0.035] backdrop-blur-[24px]";
   const rc = "transition-all duration-300 hover:translate-y-[-3px] cursor-pointer rounded-2xl overflow-hidden border border-white/[0.06] shadow-[0_10px_40px_-12px_rgba(0,0,0,0.5)] hover:shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6),0_0_30px_rgba(76,201,240,0.08)] bg-white/[0.035] backdrop-blur-[24px]";
 
-  const sel = selectedIdx !== null ? ARTICLES[selectedIdx] : null;
-  const featured = ARTICLES.find(a => a.featured);
+  const categories = CATEGORIES;
+  const catCounts = useMemo(() => categories.map((_, i) => {
+    if (i === 0) return articles.length;
+    const tag = categories[i].label;
+    return articles.filter(a => a.tag === tag).length;
+  }), [articles, categories]);
 
-  // Memoize rendered markdown to avoid re-highlight on every render
+  const activeCatLabel = categories[activeCat]?.label ?? "All Documents";
+  const filteredArticles = useMemo(() => {
+    if (activeCat === 0) return articles;
+    return articles.filter(a => a.tag === activeCatLabel);
+  }, [articles, activeCat, activeCatLabel]);
+
+  const sel = selectedIdx !== null ? articles[selectedIdx] : null;
+
+  // Memoize rendered markdown
   const renderedContent = useMemo(() => {
-    const md = articleMd || sel?.md || "";
+    const md = articleMd || sel?.content || "";
     if (!md) return null;
     return renderMarkdown(md);
-  }, [articleMd, sel?.md]);
-
-  // Compute per-category counts from ARTICLES
-  const catCounts = CATEGORIES.map(cat =>
-    cat.label === "All Documents" ? ARTICLES.length : ARTICLES.filter(a => a.tag === cat.label).length
-  );
-
-  // Filter articles by active category
-  const filteredArticles = activeCat === 0
-    ? ARTICLES
-    : ARTICLES.filter(a => a.tag === CATEGORIES[activeCat].label);
+  }, [articleMd, sel?.content]);
 
   // Init edit/article state when switching articles
   if (sel && selectedIdx !== prevSelRef.current) {
     prevSelRef.current = selectedIdx;
-    setEditContent(sel.md || "");
-    setArticleMd(sel.md || "");
+    setEditContent(sel.content || "");
+    setArticleMd(sel.content || "");
     setViewMode("preview");
     setIsEditing(false);
   }
@@ -110,7 +112,7 @@ export default function DocsPage() {
     bodyContent = (
       <TimelineTab
         filteredArticles={filteredArticles}
-        ARTICLES={ARTICLES}
+        articles={articles}
         setSelectedIdx={setSelectedIdx}
         TAG_COLORS={TAG_COLORS}
         TAG_ICONS={TAG_ICONS}
@@ -124,9 +126,9 @@ export default function DocsPage() {
     bodyContent = (
       <DocGrid
         activeCat={activeCat}
-        ARTICLES={ARTICLES}
+        ARTICLES={articles}
         filteredArticles={filteredArticles}
-        featured={featured}
+        featured={articles.find(a => a.featured)}
         setSelectedIdx={setSelectedIdx}
         rc={rc}
         TAG_COLORS={TAG_COLORS}
@@ -150,7 +152,7 @@ export default function DocsPage() {
             <h3 className="text-sm font-bold tracking-tight mt-1.5 text-white/90">Docs Hub</h3>
           </div>
           <DocsSidebar
-            CATEGORIES={CATEGORIES}
+            categories={categories}
             activeCat={activeCat}
             setActiveCat={setActiveCat}
             setSelectedIdx={setSelectedIdx}
@@ -206,7 +208,7 @@ export default function DocsPage() {
 
           <div className="flex-1 overflow-y-auto scrollbar-none px-6 py-5 space-y-5">
             {showNewEditor ? (
-              <NewDocEditor onClose={() => setShowNewEditor(false)} />
+              <NewDocEditor onClose={() => setShowNewEditor(false)} onSaved={refresh} />
             ) : (
               bodyContent
             )}

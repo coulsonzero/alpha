@@ -1,22 +1,23 @@
 import { useState } from "react";
-import { BookOpen, Activity, ArrowRight } from "lucide-react";
+import { BookOpen,Activity,ArrowRight } from "lucide-react";
+import type { Article } from "@/hooks/useArticles";
 
 interface TimelineTabProps {
-  filteredArticles: typeof import("@/components/doc/docsData").ARTICLES;
-  ARTICLES: typeof import("@/components/doc/docsData").ARTICLES;
+  filteredArticles: Article[];
+  articles: Article[];
   setSelectedIdx: (idx: number | null) => void;
   TAG_COLORS: Record<string, string>;
-  TAG_ICONS: Record<string, React.ElementType>;
+  TAG_ICONS: Record<string, any>;
 }
 
-export const TimelineTab = ({ filteredArticles, ARTICLES, setSelectedIdx, TAG_COLORS, TAG_ICONS }: TimelineTabProps) => {
+export const TimelineTab = ({ filteredArticles, articles, setSelectedIdx, TAG_COLORS, TAG_ICONS }: TimelineTabProps) => {
   const [timelineYear, setTimelineYear] = useState("2026");
   const [timelineMonth, setTimelineMonth] = useState("");
 
-  const availableMonths = [...new Set(ARTICLES.filter(a => a.date.slice(0, 4) === timelineYear).map(a => a.date.slice(5, 7)))].sort();
+  const availableMonths = [...new Set(articles.filter(a => a.date?.slice(0, 4) === timelineYear).map(a => a.date?.slice(5, 7)))].sort();
   const timelineArticles = [...filteredArticles].filter(a => {
-    const y = a.date.slice(0, 4);
-    const m = a.date.slice(5, 7);
+    const y = a.date?.slice(0, 4);
+    const m = a.date?.slice(5, 7);
     if (timelineMonth && `${y}-${m}` !== `${timelineYear}-${timelineMonth}`) return false;
     if (!timelineMonth && y !== timelineYear) return false;
     return true;
@@ -34,7 +35,7 @@ export const TimelineTab = ({ filteredArticles, ARTICLES, setSelectedIdx, TAG_CO
           <select value={timelineYear} onChange={e => setTimelineYear(e.target.value)}
             className="px-3 py-1.5 text-[10px] font-medium rounded-lg outline-none text-white/70 border border-white/[0.06] bg-white/[0.04] cursor-pointer appearance-none"
             style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center", paddingRight: "28px" }}>
-            {[...new Set(ARTICLES.map(a => a.date.slice(0, 4)))].sort().reverse().map(y => (
+            {[...new Set(articles.map(a => a.date?.slice(0, 4)))].sort().reverse().map(y => (
               <option key={y} value={y} className="bg-[#0d1117] text-white/80">{y}</option>
             ))}
           </select>
@@ -56,7 +57,7 @@ export const TimelineTab = ({ filteredArticles, ARTICLES, setSelectedIdx, TAG_CO
             const TagIcon = TAG_ICONS[article.tag] || BookOpen;
             return (
             <div key={i} className="relative flex items-center cursor-pointer group"
-              onClick={() => setSelectedIdx(ARTICLES.indexOf(article))}>
+              onClick={() => setSelectedIdx(articles.indexOf(article))}>
               {/* Date on the left */}
               <div className="shrink-0 text-right pr-5" style={{ width: "100px" }}>
                 <span className="text-[10px] text-white/30 font-mono tracking-tight">{article.date}</span>

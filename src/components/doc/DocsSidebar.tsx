@@ -1,6 +1,17 @@
-/* ─── Docs Sidebar ─── */
+import { BookOpen, Bookmark, Code2, Cloud, Database, Terminal, Zap } from "lucide-react";
+
+const iconMap: Record<string, React.ElementType> = {
+  "All Documents": Bookmark,
+  Frontend: Code2,
+  Backend: Cloud,
+  Database: Database,
+  DevOps: Terminal,
+  API: Zap,
+  Resources: BookOpen,
+};
+
 interface DocsSidebarProps {
-  CATEGORIES: { label: string; icon: React.ElementType }[];
+  categories: { label: string; icon: React.ElementType }[];
   activeCat: number;
   setActiveCat: (i: number) => void;
   setSelectedIdx: (idx: number | null) => void;
@@ -9,10 +20,10 @@ interface DocsSidebarProps {
   onNavigate?: () => void;
 }
 
-export const DocsSidebar = ({ CATEGORIES, activeCat, setActiveCat, setSelectedIdx, catCounts, CAT_COLORS, onNavigate }: DocsSidebarProps) => {
+export const DocsSidebar = ({ categories, activeCat, setActiveCat, setSelectedIdx, catCounts, CAT_COLORS, onNavigate }: DocsSidebarProps) => {
   return (
     <div className="flex-1 overflow-y-auto scrollbar-none p-3 space-y-1">
-      {CATEGORIES.map((cat, i) => {
+      {categories.map((cat, i) => {
         const Icon = cat.icon;
         return (
           <button key={cat.label} onClick={() => { setActiveCat(i); setSelectedIdx(null); onNavigate?.(); }}
@@ -24,10 +35,7 @@ export const DocsSidebar = ({ CATEGORIES, activeCat, setActiveCat, setSelectedId
             style={i === activeCat ? { background: "linear-gradient(135deg, rgba(123,47,247,0.25), rgba(0,209,255,0.10))" } : {}}>
             <Icon size={16} className="shrink-0" style={{ color: CAT_COLORS[cat.label] || "rgba(255,255,255,0.6)" }} />
             <span className="flex-1">{cat.label}</span>
-            <span className="text-[10px] font-medium ml-auto"
-              style={{
-                color: i === activeCat ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.2)",
-              }}>
+            <span className="text-[10px] font-medium ml-auto" style={{ color: i === activeCat ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.2)" }}>
               {catCounts[i]}
             </span>
           </button>
