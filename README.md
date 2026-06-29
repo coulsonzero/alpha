@@ -80,3 +80,25 @@ npm run build               # 生成 dist/
 echo '127.0.0.1 alpha.coulsonzero.shop' | sudo tee -a /etc/hosts
 
 然后本机就可以通过 http://alpha.coulsonzero.shop 访问 nginx 代理的服务了。
+
+### 直接将前端build的dist/目录放到后端
+1. 后端 go 项目中，把 dist/ 目录放到 public/ 目录下，然后修改 main.go
+```go
+// 修改
+// r := gin.Default()
+r := gin.New()
+
+// 修改
+// r.LoadHTMLGlob("templates/*")
+r.Static("/static", "./public")
+
+// 修改
+// r.GET("/index", func(c *gin.Context) {
+//     c.HTML(http.StatusOK, "index.html", nil)
+// })
+r.GET("/index", func(c *gin.Context) {
+    c.HTML(http.StatusOK, "public/index.html", nil)
+})
+```
+使用公网ip访问：
+如http://47.242.150.243:8000/index
