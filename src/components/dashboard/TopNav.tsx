@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Bell, X } from "lucide-react";
 import { VisitorCounter } from "./VisitorCounter";
+import { useAuth } from "./AuthProvider";
 
 const notifications = [
   { text: "New enterprise signup — Acme Industries", time: "2m ago", unread: true },
@@ -12,8 +13,12 @@ const notifications = [
 
 export const TopNav = () => {
   const [notifOpen, setNotifOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 });
+  const [profileDropdownPos, setProfileDropdownPos] = useState({ top: 0, right: 0 });
   const bellRef = useRef<HTMLButtonElement>(null);
+  const avatarRef = useRef<HTMLButtonElement>(null);
+  const { openAuth } = useAuth();
 
   const updateDropdownPos = useCallback(() => {
     if (bellRef.current) {
@@ -36,6 +41,28 @@ export const TopNav = () => {
       window.removeEventListener("resize", updateDropdownPos);
     };
   }, [notifOpen, updateDropdownPos]);
+
+  const updateProfilePos = useCallback(() => {
+    if (avatarRef.current) {
+      const rect = avatarRef.current.getBoundingClientRect();
+      setProfileDropdownPos({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right,
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (profileOpen) {
+      updateProfilePos();
+      window.addEventListener("scroll", updateProfilePos, true);
+      window.addEventListener("resize", updateProfilePos);
+    }
+    return () => {
+      window.removeEventListener("scroll", updateProfilePos, true);
+      window.removeEventListener("resize", updateProfilePos);
+    };
+  }, [profileOpen, updateProfilePos]);
 
   return (
     <header className="flex items-center gap-4 mb-8 animate-fade-in">
@@ -66,13 +93,51 @@ export const TopNav = () => {
           <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-neon-cyan shadow-[0_0_10px_hsl(var(--neon-cyan))] animate-pulse" />
         </button>
 
-        {/* User profile — icon only */}
-        <div className="w-11 h-11 rounded-[50%] grid place-items-center" style={{ border: "none" }}>
+        {/* User avatar */}
+        <button
+          ref={avatarRef}
+          className="w-11 h-11 rounded-[50%] grid place-items-center active:scale-[0.95] transition-transform"
+          style={{ background: "rgba(255,255,255,0.04)", backdropFilter: "blur(32px)", border: "none" }}
+          onClick={() => setProfileOpen(!profileOpen)}
+        >
           <div className="w-9 h-9 rounded-[50%] bg-gradient-to-br from-neon-pink via-neon-purple to-neon-blue grid place-items-center text-xs font-bold">
             AM
           </div>
-        </div>
+        </button>
       </div>
+
+      {/* Profile Dropdown — Portal to document.body */}
+      {profileOpen &&
+        createPortal(
+          <div className="fixed inset-0 z-[99999]">
+            <div className="absolute inset-0" onClick={() => setProfileOpen(false)} />
+            <div
+              className="absolute w-44 glass-strong rounded-2xl p-1.5 animate-dropdown-in overflow-hidden"
+              style={{
+                top: `${profileDropdownPos.top}px`,
+                right: `${profileDropdownPos.right}px`,
+              }}
+            >
+              <button
+                className="w-full text-left px-3 py-2.5 rounded-xl text-xs text-white/80 hover:bg-white/5 transition-colors"
+                onClick={() => { setProfileOpen(false); openAuth("login"); }}
+              >
+                Sign In
+              </button>
+              <button
+                className="w-full text-left px-3 py-2.5 rounded-xl text-xs text-white/80 hover:bg-white/5 transition-colors"
+                onClick={() => { setProfileOpen(false); openAuth("signup"); }}
+              >
+                Sign Up
+              </button>
+              <hr className="border-white/5 my-1" />
+              <button className="w-full text-left px-3 py-2.5 rounded-xl text-xs text-white/40 hover:bg-white/5 transition-colors">
+                Settings
+              </button>
+            </div>
+          </div>,
+          document.body,
+        )}
 
       {/* Notification Dropdown — Portal to document.body */}
       {notifOpen &&

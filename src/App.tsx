@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { MusicPlayer } from "@/components/dashboard/MusicPlayer";
+import { AuthProvider } from "@/components/dashboard/AuthProvider";
 import Index from "./pages/Index.tsx";
 import ChatPage from "./pages/ChatPage.tsx";
 import DocsPage from "./pages/DocsPage.tsx";
@@ -17,14 +18,16 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <MusicPlayer />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/chat" element={<ChatPage />} />
-          <Route path="/docs" element={<DocsPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <MusicPlayer />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/chat" element={<ChatPage />} />
+            <Route path="/docs" element={<DocsPage />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
