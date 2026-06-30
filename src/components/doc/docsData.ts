@@ -96,10 +96,16 @@ export const TAG_ICONS: Record<string, React.ElementType> = {
 export interface Comment {
   id: number; name: string; email: string; website: string; avatar: string; time: string;
   content: string; likes: number; liked?: boolean;
-  parentId: number | null; replies?: Comment[];
+  parentId: number | null; replies?: Comment[]; avatarClassName?: string; avatarUrl?: string | null;
 }
 
-export const EMOJI_LIST = Array.from("😀😂😎🥳🤩😇😅😆🤗😍🤔👍🎉👋💪🙌✨🚀💯");
+export const EMOJI_LIST = [
+  "😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇",
+  "🙂", "😉", "😍", "😘", "😋", "😎", "🤩", "🥳", "🤔", "🤗",
+  "👍", "👌", "👏", "🙌", "💪", "🙏", "🎉", "✨", "🔥", "🚀",
+  "🌩️", "🌨️", "🌧️", "🌦️", "🌥️", "🌤️", "⛈️", "⛅", "☁️", "🌍",
+  "🥉","🥈","🥇","🏅","🥬","🍇","🍉"
+];
 
 export const INITIAL_COMMENTS: Comment[] = [
   { id: 1, name: "Alex Morgan", email: "alex@morgan.dev", website: "alex.dev", avatar: "AM", time: "2 hours ago", content: "**Great article!** The blur example helped a lot 🚀 _Really appreciate it._", likes: 12, parentId: null, replies: [

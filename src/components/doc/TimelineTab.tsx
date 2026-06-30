@@ -6,11 +6,12 @@ interface TimelineTabProps {
   filteredArticles: Article[];
   articles: Article[];
   setSelectedIdx: (idx: number | null) => void;
+  openArticle?: (article: Article) => void;
   TAG_COLORS: Record<string, string>;
   TAG_ICONS: Record<string, any>;
 }
 
-export const TimelineTab = ({ filteredArticles, articles, setSelectedIdx, TAG_COLORS, TAG_ICONS }: TimelineTabProps) => {
+export const TimelineTab = ({ filteredArticles, articles, setSelectedIdx, openArticle, TAG_COLORS, TAG_ICONS }: TimelineTabProps) => {
   const [timelineYear, setTimelineYear] = useState("2026");
   const [timelineMonth, setTimelineMonth] = useState("");
 
@@ -57,7 +58,7 @@ export const TimelineTab = ({ filteredArticles, articles, setSelectedIdx, TAG_CO
             const TagIcon = TAG_ICONS[article.tag] || BookOpen;
             return (
             <div key={i} className="relative flex items-center cursor-pointer group"
-              onClick={() => setSelectedIdx(articles.indexOf(article))}>
+              onClick={() => openArticle ? openArticle(article) : setSelectedIdx(articles.indexOf(article))}>
               {/* Date on the left */}
               <div className="shrink-0 text-right pr-5" style={{ width: "100px" }}>
                 <span className="text-[10px] text-white/30 font-mono tracking-tight">{article.date}</span>

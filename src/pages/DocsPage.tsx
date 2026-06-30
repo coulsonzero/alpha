@@ -1,11 +1,13 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { ArrowLeft, Plus } from "lucide-react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
+import { toast } from "sonner";
 
 import { useArticles, CATEGORIES, TAG_COLORS, TAG_ICONS, CAT_COLORS } from "@/hooks/useArticles";
 import type { Article } from "@/hooks/useArticles";
-import { INITIAL_COMMENTS } from "@/components/doc/docsData";
 import type { Comment } from "@/components/doc/docsData";
+import { fetchComments } from "@/api/comment";
 import { renderMarkdown } from "@/components/doc/DocRenderer";
 import { DocsSidebar } from "@/components/doc/DocsSidebar";
 import { DocGrid } from "@/components/doc/DocGrid";
@@ -13,17 +15,22 @@ import { ArticleView } from "@/components/doc/ArticleView";
 import { TimelineTab } from "@/components/doc/TimelineTab";
 import { ProfileTab } from "@/components/doc/ProfileTab";
 import { NewDocEditor } from "@/components/doc/NewDocEditor";
+import { useAuth } from "@/components/dashboard/AuthProvider";
+import { resolveAvatar } from "@/lib/avatar";
 
 /* ─── Main ─── */
 export default function DocsPage() {
   const { articles, loading, refresh } = useArticles();
+  const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeCat, setActiveCat] = useState(0);
-  const [activeTab, setActiveTab] = useState(2);
+  const [activeTab, setActiveTab] = useState(0);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
-  const [comments, setComments] = useState<Comment[]>(INITIAL_COMMENTS);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [rawComments, setRawComments] = useState<any[]>([]);
   const [form, setForm] = useState({ name: "", email: "", website: "", content: "" });
   const [replyTo, setReplyTo] = useState<number | null>(null);
-  const [replyText, setReplyText] = useState("");
+  const [replyText, setReplyText] = useState({ username: "", content: "" });
   const [liked, setLiked] = useState<Set<number>>(new Set());
   const [showEmoji, setShowEmoji] = useState(false);
   const [showReplyEmoji, setShowReplyEmoji] = useState<number | null>(null);
@@ -38,6 +45,87 @@ export default function DocsPage() {
 
   // New doc editor
   const [showNewEditor, setShowNewEditor] = useState(false);
+
+  const loggedInCommentUser = user ? {
+    username: user.username,
+    email: user.email,
+    avatarUrl: resolveAvatar(user.avatar),
+  } : null;
+
+  useEffect(() => {
+    if (!user) return;
+    setForm(prev => ({
+      ...prev,
+      name: prev.name || user.username,
+      email: prev.email || user.email || "",
+    }));
+    setReplyText(prev => ({
+      ...prev,
+      username: prev.username || user.username,
+    }));
+  }, [user]);
+
+  const avatarGradients = useMemo(() => [
+    "from-violet-400 to-cyan-400",
+    "from-pink-400 to-violet-400",
+    "from-emerald-400 to-cyan-400",
+    "from-amber-400 to-rose-400",
+    "from-blue-400 to-indigo-400",
+  ], []);
+
+  const getAvatarGradient = useCallback((id: number, username: string) => {
+    const seed = id || username.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    return avatarGradients[Math.abs(seed) % avatarGradients.length];
+  }, [avatarGradients]);
+
+  const formatDisplayTime = useCallback((value: unknown) => {
+    const date = value ? new Date(String(value)) : new Date();
+    if (Number.isNaN(date.getTime())) return "Just now";
+    const pad = (part: number) => String(part).padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  }, []);
+
+  const normalizeComment = useCallback((item: any): Comment => {
+    const username = item.username ?? item.name ?? "Anonymous";
+    const createdAt = item.comment_time ?? item.createdAt ?? item.created_at ?? item.time;
+    const id = Number(item.id ?? item._id ?? Date.now());
+
+    return {
+      id,
+      name: username,
+      email: item.email ?? "",
+      website: item.website ?? "",
+      avatar: item.avatar ?? username.split(" ").map((part: string) => part[0]).join("").slice(0, 2).toUpperCase(),
+      avatarClassName: getAvatarGradient(id, username),
+      avatarUrl: resolveAvatar(item.avatar) || (loggedInCommentUser?.username === username ? loggedInCommentUser.avatarUrl : null),
+      time: createdAt ? formatDisplayTime(createdAt) : "Just now",
+      content: item.content ?? "",
+      likes: Number(item.like_count ?? item.likes ?? 0),
+      parentId: item.parent_id ?? item.parentId ?? null,
+      replies: (item.replies ?? []).map(normalizeComment),
+    };
+  }, [formatDisplayTime, getAvatarGradient, loggedInCommentUser]);
+
+  const loadComments = async () => {
+    try {
+      const res = await fetchComments();
+      const payload = res.data?.data ?? res.data ?? [];
+      const list = Array.isArray(payload) ? payload : payload.list ?? payload.comments ?? [];
+      setRawComments(list);
+      setComments(list.map(normalizeComment));
+    } catch (error) {
+      toast.error("Failed to load comments");
+    }
+  };
+
+  useEffect(() => {
+    loadComments();
+  }, []);
+
+  useEffect(() => {
+    if (rawComments.length === 0) return;
+    setComments(rawComments.map(normalizeComment));
+  }, [rawComments, normalizeComment]);
 
   const pc = "border-white/[0.06] shadow-[0_10px_40px_-12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06),0_0_30px_rgba(76,201,240,0.06)] bg-white/[0.035] backdrop-blur-[24px]";
   const rc = "transition-all duration-300 hover:translate-y-[-3px] cursor-pointer rounded-2xl overflow-hidden border border-white/[0.06] shadow-[0_10px_40px_-12px_rgba(0,0,0,0.5)] hover:shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6),0_0_30px_rgba(76,201,240,0.08)] bg-white/[0.035] backdrop-blur-[24px]";
@@ -56,6 +144,42 @@ export default function DocsPage() {
   }, [articles, activeCat, activeCatLabel]);
 
   const sel = selectedIdx !== null ? articles[selectedIdx] : null;
+
+  const clearSelectedArticle = useCallback(() => {
+    setSelectedIdx(null);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.delete("doc");
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
+
+  const openArticle = useCallback((article: Article) => {
+    const idx = articles.indexOf(article);
+    if (idx < 0) return;
+    setSelectedIdx(idx);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set("doc", article.path || String(idx));
+      return next;
+    }, { replace: true });
+  }, [articles, setSearchParams]);
+
+  useEffect(() => {
+    if (!articles.length || selectedIdx !== null) return;
+    const docPath = searchParams.get("doc");
+    if (!docPath) return;
+    const idx = articles.findIndex(article => article.path === docPath);
+    if (idx >= 0) {
+      setSelectedIdx(idx);
+    } else {
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        next.delete("doc");
+        return next;
+      }, { replace: true });
+    }
+  }, [articles, searchParams, selectedIdx, setSearchParams]);
 
   // Memoize rendered markdown
   const renderedContent = useMemo(() => {
@@ -93,6 +217,7 @@ export default function DocsPage() {
         setComments={setComments}
         form={form}
         setForm={setForm}
+        refreshComments={loadComments}
         replyTo={replyTo}
         setReplyTo={setReplyTo}
         replyText={replyText}
@@ -104,6 +229,7 @@ export default function DocsPage() {
         showReplyEmoji={showReplyEmoji}
         setShowReplyEmoji={setShowReplyEmoji}
         commentEndRef={commentEndRef}
+        loggedInUser={loggedInCommentUser}
         TAG_COLORS={TAG_COLORS}
         TAG_ICONS={TAG_ICONS}
       />
@@ -114,6 +240,7 @@ export default function DocsPage() {
         filteredArticles={filteredArticles}
         articles={articles}
         setSelectedIdx={setSelectedIdx}
+        openArticle={openArticle}
         TAG_COLORS={TAG_COLORS}
         TAG_ICONS={TAG_ICONS}
       />
@@ -130,6 +257,7 @@ export default function DocsPage() {
         filteredArticles={filteredArticles}
         featured={articles.find(a => a.featured)}
         setSelectedIdx={setSelectedIdx}
+        openArticle={openArticle}
         rc={rc}
         TAG_COLORS={TAG_COLORS}
         TAG_ICONS={TAG_ICONS}
@@ -155,7 +283,7 @@ export default function DocsPage() {
             categories={categories}
             activeCat={activeCat}
             setActiveCat={setActiveCat}
-            setSelectedIdx={setSelectedIdx}
+            setSelectedIdx={clearSelectedArticle}
             catCounts={catCounts}
             CAT_COLORS={CAT_COLORS}
             onNavigate={() => setShowNewEditor(false)}
@@ -168,7 +296,7 @@ export default function DocsPage() {
           {/* Header — no search bar */}
           <div className="px-6 py-4 border-b border-white/[0.03] flex items-center gap-4 shrink-0" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.02), transparent)" }}>
             {sel && (
-              <button onClick={() => { setSelectedIdx(null); }}
+              <button onClick={clearSelectedArticle}
                 className="w-8 h-8 rounded-full grid place-items-center transition-all duration-200 hover:scale-105 active:scale-95"
                 style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(255,255,255,0.1)" }}>
                 <ArrowLeft size={14} className="text-white/80" />

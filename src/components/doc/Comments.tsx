@@ -1,10 +1,25 @@
-import { useState, useRef } from "react";
-import { MessageCircle, Heart, Reply, Send, Smile, Check } from "lucide-react";
+import { MessageCircle, Heart, Reply, Send, Smile } from "lucide-react";
 import { EmojiPop } from "@/components/doc/EmojiPop";
 import { MiniMd } from "@/components/doc/DocRenderer";
+import { createComment } from "@/api/comment";
+import { toast } from "sonner";
 import type { Comment } from "@/components/doc/docsData";
-import { saveMd } from "@/components/doc/docsData";
-import type { Article } from "@/components/doc/docsData";
+
+const getErrorMessage = (error: any, fallback: string) => {
+  const data = error?.response?.data;
+  return data?.message || data?.msg || data?.error || error?.message || fallback;
+};
+
+const formatCommentTime = (date: Date) => {
+  const pad = (value: number) => String(value).padStart(2, "0");
+  const offsetMinutes = -date.getTimezoneOffset();
+  const sign = offsetMinutes >= 0 ? "+" : "-";
+  const absOffset = Math.abs(offsetMinutes);
+  const offsetHours = pad(Math.floor(absOffset / 60));
+  const offsetRemainder = pad(absOffset % 60);
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}${sign}${offsetHours}:${offsetRemainder}`;
+};
 
 /* ─── Comments Section ─── */
 interface CommentsSectionProps {
@@ -12,10 +27,11 @@ interface CommentsSectionProps {
   setComments: React.Dispatch<React.SetStateAction<Comment[]>>;
   form: { name: string; email: string; website: string; content: string; };
   setForm: React.Dispatch<React.SetStateAction<{ name: string; email: string; website: string; content: string; }>>;
+  refreshComments: () => Promise<void>;
   replyTo: number | null;
   setReplyTo: React.Dispatch<React.SetStateAction<number | null>>;
-  replyText: string;
-  setReplyText: React.Dispatch<React.SetStateAction<string>>;
+  replyText: { username: string; content: string; };
+  setReplyText: React.Dispatch<React.SetStateAction<{ username: string; content: string; }>>;
   liked: Set<number>;
   setLiked: React.Dispatch<React.SetStateAction<Set<number>>>;
   showEmoji: boolean;
@@ -23,45 +39,107 @@ interface CommentsSectionProps {
   showReplyEmoji: number | null;
   setShowReplyEmoji: React.Dispatch<React.SetStateAction<number | null>>;
   commentEndRef: React.RefObject<HTMLDivElement | null>;
+  loggedInUser: { username: string; email: string; avatarUrl: string | null } | null;
 }
 
 export const CommentsSection = ({
   comments, setComments, form, setForm, replyTo, setReplyTo, replyText, setReplyText,
-  liked, setLiked, showEmoji, setShowEmoji, showReplyEmoji, setShowReplyEmoji, commentEndRef,
+  liked, setLiked, showEmoji, setShowEmoji, showReplyEmoji, setShowReplyEmoji, commentEndRef, refreshComments, loggedInUser,
 }: CommentsSectionProps) => {
 
   const toggleLike = (id: number) => {
+    const isLiked = liked.has(id);
     setLiked(p => {
       const n = new Set(p);
       if (n.has(id)) { n.delete(id); } else { n.add(id); }
       return n;
     });
     setComments(prev => prev.map(c => {
-      if (c.id === id) return { ...c, likes: c.likes + (liked.has(id) ? -1 : 1) };
-      if (c.replies) return { ...c, replies: c.replies.map(r => r.id === id ? { ...r, likes: r.likes + (liked.has(id) ? -1 : 1) } : r) };
+      if (c.id === id) return { ...c, likes: Math.max(0, c.likes + (isLiked ? -1 : 1)) };
+      if (c.replies) return { ...c, replies: c.replies.map(r => r.id === id ? { ...r, likes: Math.max(0, r.likes + (isLiked ? -1 : 1)) } : r) };
       return c;
     }));
   };
 
-  const pubComment = () => {
-    if (!form.name.trim() || !form.content.trim()) return;
-    const n: Comment = {
-      id: Date.now(), name: form.name, email: form.email, website: form.website || form.name.toLowerCase().replace(/\s/g, "."),
-      avatar: form.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase(),
-      time: "Just now", content: form.content, likes: 0, parentId: null, replies: [],
-    };
-    setComments(p => [...p, n]);
-    setForm({ name: "", email: "", website: "", content: "" });
+  const makeCommentPayload = (
+    data: { username: string; content: string; email?: string; website?: string },
+    parentId: number | null,
+  ) => ({
+    content: data.content.trim(),
+    username: data.username.trim(),
+    email: data.email?.trim() ?? "",
+    website: data.website?.trim() ?? "",
+    parent_id: parentId,
+    comment_time: formatCommentTime(new Date()),
+    like_count: 0,
+  });
+
+  const pubComment = async () => {
+    if (!form.name.trim()) {
+      toast.error("Username is required");
+      return;
+    }
+    if (!form.content.trim()) {
+      toast.error("Content is required");
+      return;
+    }
+
+    const payload = makeCommentPayload({
+      username: form.name,
+      content: form.content,
+      email: form.email,
+      website: form.website,
+    }, null);
+
+    try {
+      await createComment(payload);
+      setForm({
+        name: loggedInUser?.username ?? "",
+        email: loggedInUser?.email ?? "",
+        website: "",
+        content: "",
+      });
+      setShowEmoji(false);
+      refreshComments().catch(error => {
+        console.error("Failed to refresh comments after post:", error);
+        toast.error(getErrorMessage(error, "Failed to refresh comments"));
+      });
+      toast.success("Comment posted");
+    } catch (error) {
+      console.error("Failed to post comment:", error);
+      toast.error(getErrorMessage(error, "Failed to post comment"));
+    }
   };
 
-  const pubReply = (pid: number) => {
-    if (!replyText.trim()) return;
-    const r: Comment = {
-      id: Date.now(), name: "You", email: "", website: "",
-      avatar: "YO", time: "Just now", content: replyText, likes: 0, parentId: pid,
-    };
-    setComments(p => p.map(c => c.id === pid ? { ...c, replies: [...(c.replies || []), r] } : c));
-    setReplyText(""); setReplyTo(null);
+  const pubReply = async (pid: number) => {
+    const replyUsername = loggedInUser?.username || replyText.username;
+    if (!replyUsername.trim()) {
+      toast.error("Reply username is required");
+      return;
+    }
+    if (!replyText.content.trim()) {
+      toast.error("Reply content is required");
+      return;
+    }
+
+    try {
+      await createComment(makeCommentPayload({
+        username: replyUsername,
+        content: replyText.content,
+        email: loggedInUser?.email ?? "",
+      }, pid));
+      setReplyText({ username: loggedInUser?.username ?? "", content: "" });
+      setReplyTo(null);
+      setShowReplyEmoji(null);
+      refreshComments().catch(error => {
+        console.error("Failed to refresh comments after reply:", error);
+        toast.error(getErrorMessage(error, "Failed to refresh comments"));
+      });
+      toast.success("Reply posted");
+    } catch (error) {
+      console.error("Failed to post reply:", error);
+      toast.error(getErrorMessage(error, "Failed to post reply"));
+    }
   };
 
   return (
@@ -78,14 +156,16 @@ export const CommentsSection = ({
           <div className="flex gap-5">
             <div className="flex-1 border-b border-white/[0.06] focus-within:border-blue-400/30 transition-colors">
               <div className="flex items-center gap-2">
-                <input placeholder="Name" value={form.name} onChange={e => setForm(p => ({ ...p,name: e.target.value }))}
-                  className="w-full bg-transparent px-0 py-2 text-[12px] outline-none text-white/80 placeholder:text-white/15" />
+                <input placeholder="Username" value={form.name} onChange={e => setForm(p => ({ ...p,name: e.target.value }))}
+                  readOnly={!!loggedInUser}
+                  className="w-full bg-transparent px-0 py-2 text-[12px] outline-none text-white/80 placeholder:text-white/15 read-only:text-white/45" />
                 <span className="text-[9px] text-white/20 font-light tracking-wide whitespace-nowrap">(Required)</span>
               </div>
             </div>
             <div className="flex-1 border-b border-white/[0.06] focus-within:border-blue-400/30 transition-colors">
               <input placeholder="Email" value={form.email} onChange={e => setForm(p => ({ ...p,email: e.target.value }))}
-                className="w-full bg-transparent px-0 py-2 text-[12px] outline-none text-white/80 placeholder:text-white/15" />
+                readOnly={!!loggedInUser}
+                className="w-full bg-transparent px-0 py-2 text-[12px] outline-none text-white/80 placeholder:text-white/15 read-only:text-white/45" />
             </div>
             <div className="flex-1 border-b border-white/[0.06] focus-within:border-blue-400/30 transition-colors">
               <input placeholder="Website" value={form.website} onChange={e => setForm(p => ({ ...p,website: e.target.value }))}
@@ -112,7 +192,9 @@ export const CommentsSection = ({
           <div key={c.id}>
             <div className="group">
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-400 to-cyan-400 grid place-items-center text-[9px] font-bold shrink-0 text-white">{c.avatar}</div>
+                <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${c.avatarClassName || "from-violet-400 to-cyan-400"} grid place-items-center text-[9px] font-bold shrink-0 text-white overflow-hidden`}>
+                  {c.avatarUrl ? <img src={c.avatarUrl} alt={c.name} className="w-full h-full object-cover" /> : c.avatar}
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2.5 mb-1.5">
                     <p className="text-[13px] font-medium text-white/90">{c.name}</p>
@@ -125,7 +207,7 @@ export const CommentsSection = ({
                   <div className="flex items-center gap-5 mt-2.5">
                     <button onClick={() => toggleLike(c.id)}
                       className="flex items-center gap-1.5 text-[11px] transition-all border-b border-transparent hover:border-white/20 pb-0.5" style={{ color: liked.has(c.id) ? "#fb7185" : "rgba(255,255,255,0.3)" }}>
-                      <Heart size={12} fill={liked.has(c.id) ? "#fb7185" : "none"} /> <span>{c.likes + (liked.has(c.id) ? 1 : 0)}</span>
+                      <Heart size={12} fill={liked.has(c.id) ? "#fb7185" : "none"} /> <span>{c.likes}</span>
                     </button>
                     <button onClick={() => setReplyTo(replyTo === c.id ? null : c.id)}
                       className="flex items-center gap-1.5 text-white/30 hover:text-blue-400 transition-all text-[11px] border-b border-transparent hover:border-blue-400/30 pb-0.5"><Reply size={12} /> Reply</button>
@@ -136,7 +218,11 @@ export const CommentsSection = ({
             {replyTo === c.id && (
               <div className="ml-11 mt-3 relative">
                 <div className="flex gap-2 animate-slide-up">
-                  <input placeholder="Write a reply..." value={replyText} onChange={e => setReplyText(e.target.value)}
+                  {!loggedInUser && (
+                    <input placeholder="Username" value={replyText.username} onChange={e => setReplyText(p => ({ ...p,username: e.target.value }))}
+                      className="w-28 border-b border-white/[0.08] bg-transparent px-0 py-2 text-[12px] outline-none text-white/70 placeholder:text-white/15 focus:border-blue-400/30 transition-colors" />
+                  )}
+                  <input placeholder="Write a reply..." value={replyText.content} onChange={e => setReplyText(p => ({ ...p,content: e.target.value }))}
                     onKeyDown={e => e.key === "Enter" && pubReply(c.id)}
                     className="flex-1 border-b border-white/[0.08] bg-transparent px-0 py-2 text-[12px] outline-none text-white/70 placeholder:text-white/15 focus:border-blue-400/30 transition-colors" />
                   <button onClick={() => setShowReplyEmoji(showReplyEmoji === c.id ? null : c.id)}
@@ -145,7 +231,7 @@ export const CommentsSection = ({
                     className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-violet-500 grid place-items-center shadow-lg hover:scale-105 transition-all"><Send size={12} /></button>
                 </div>
                 {showReplyEmoji === c.id && (
-                  <EmojiPop onSelect={e => setReplyText(p => p + e)} onClose={() => setShowReplyEmoji(null)} />
+                  <EmojiPop onSelect={e => setReplyText(p => ({ ...p,content: p.content + e }))} onClose={() => setShowReplyEmoji(null)} />
                 )}
               </div>
             )}
@@ -154,7 +240,9 @@ export const CommentsSection = ({
                 {c.replies.map(r => (
                   <div key={r.id}>
                     <div className="flex items-start gap-2.5">
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-400 to-violet-400 grid place-items-center text-[8px] font-bold shrink-0 text-white">{r.avatar}</div>
+                      <div className={`w-6 h-6 rounded-full bg-gradient-to-br ${r.avatarClassName || "from-pink-400 to-violet-400"} grid place-items-center text-[8px] font-bold shrink-0 text-white overflow-hidden`}>
+                        {r.avatarUrl ? <img src={r.avatarUrl} alt={r.name} className="w-full h-full object-cover" /> : r.avatar}
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-baseline gap-2 mb-0.5">
                           <p className="text-[12px] font-medium text-white/85">{r.name}</p>
@@ -165,7 +253,7 @@ export const CommentsSection = ({
                         <div className="flex items-center gap-3 mt-1">
                           <button onClick={() => toggleLike(r.id)}
                             className="flex items-center gap-1 text-[10px] border-b border-transparent hover:border-white/20 pb-0.5 transition-all" style={{ color: liked.has(r.id) ? "#fb7185" : "rgba(255,255,255,0.25)" }}>
-                            <Heart size={10} fill={liked.has(r.id) ? "#fb7185" : "none"} /> {r.likes + (liked.has(r.id) ? 1 : 0)}
+                            <Heart size={10} fill={liked.has(r.id) ? "#fb7185" : "none"} /> {r.likes}
                           </button>
                         </div>
                       </div>

@@ -24,10 +24,11 @@ interface ArticleViewProps {
   setComments: React.Dispatch<React.SetStateAction<Comment[]>>;
   form: { name: string; email: string; website: string; content: string; };
   setForm: React.Dispatch<React.SetStateAction<{ name: string; email: string; website: string; content: string; }>>;
+  refreshComments: () => Promise<void>;
   replyTo: number | null;
   setReplyTo: React.Dispatch<React.SetStateAction<number | null>>;
-  replyText: string;
-  setReplyText: React.Dispatch<React.SetStateAction<string>>;
+  replyText: { username: string; content: string; };
+  setReplyText: React.Dispatch<React.SetStateAction<{ username: string; content: string; }>>;
   liked: Set<number>;
   setLiked: React.Dispatch<React.SetStateAction<Set<number>>>;
   showEmoji: boolean;
@@ -35,14 +36,15 @@ interface ArticleViewProps {
   showReplyEmoji: number | null;
   setShowReplyEmoji: React.Dispatch<React.SetStateAction<number | null>>;
   commentEndRef: React.RefObject<HTMLDivElement | null>;
+  loggedInUser: { username: string; email: string; avatarUrl: string | null } | null;
   TAG_COLORS: Record<string, string>;
   TAG_ICONS: Record<string, React.ElementType>;
 }
 
 export const ArticleView = ({
   sel, selectedIdx, setSelectedIdx, viewMode, setViewMode, isEditing, setIsEditing, editContent, setEditContent,
-  articleMd, setArticleMd, renderedContent, comments, setComments, form, setForm, replyTo, setReplyTo, replyText, setReplyText,
-  liked, setLiked, showEmoji, setShowEmoji, showReplyEmoji, setShowReplyEmoji, commentEndRef,
+  articleMd, setArticleMd, renderedContent, comments, setComments, form, setForm, refreshComments, replyTo, setReplyTo, replyText, setReplyText,
+  liked, setLiked, showEmoji, setShowEmoji, showReplyEmoji, setShowReplyEmoji, commentEndRef, loggedInUser,
   TAG_COLORS, TAG_ICONS,
 }: ArticleViewProps) => {
   if (!sel) return null;
@@ -129,6 +131,7 @@ export const ArticleView = ({
         setComments={setComments}
         form={form}
         setForm={setForm}
+        refreshComments={refreshComments}
         replyTo={replyTo}
         setReplyTo={setReplyTo}
         replyText={replyText}
@@ -140,6 +143,7 @@ export const ArticleView = ({
         showReplyEmoji={showReplyEmoji}
         setShowReplyEmoji={setShowReplyEmoji}
         commentEndRef={commentEndRef}
+        loggedInUser={loggedInUser}
       />
     </div>
   );

@@ -7,18 +7,19 @@ interface DocGridProps {
   filteredArticles: any[];
   featured: any | undefined;
   setSelectedIdx: (idx: number | null) => void;
+  openArticle?: (article: any) => void;
   rc: string;
   TAG_COLORS: Record<string, string>;
   TAG_ICONS: Record<string, any>;
 }
 
-export const DocGrid = ({ activeCat, ARTICLES, filteredArticles, featured, setSelectedIdx, rc, TAG_COLORS, TAG_ICONS }: DocGridProps) => {
+export const DocGrid = ({ activeCat, ARTICLES, filteredArticles, featured, setSelectedIdx, openArticle, rc, TAG_COLORS, TAG_ICONS }: DocGridProps) => {
   return (
     <>
       {featured && activeCat === 0 && (
         <div className="relative rounded-2xl overflow-hidden group cursor-pointer"
           style={{ background: "linear-gradient(135deg, rgba(76,201,240,0.6), rgba(123,47,247,0.45))", boxShadow: "0 20px 60px -12px rgba(76,201,240,0.25), inset 0 1px 0 rgba(255,255,255,0.15)" }}
-          onClick={() => setSelectedIdx(ARTICLES.indexOf(featured))}>
+          onClick={() => openArticle ? openArticle(featured) : setSelectedIdx(ARTICLES.indexOf(featured))}>
           <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl opacity-50" style={{ background: "radial-gradient(circle, rgba(255,255,255,0.2), transparent 70%)" }} />
           <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full blur-3xl opacity-40" style={{ background: "radial-gradient(circle, rgba(76,201,240,0.3), transparent 70%)" }} />
           <div className="relative p-8 flex items-start justify-between">
@@ -44,7 +45,7 @@ export const DocGrid = ({ activeCat, ARTICLES, filteredArticles, featured, setSe
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredArticles.map((a, i) => (
-          <div key={i} className={rc} onClick={() => setSelectedIdx(ARTICLES.indexOf(a))}>
+          <div key={i} className={rc} onClick={() => openArticle ? openArticle(a) : setSelectedIdx(ARTICLES.indexOf(a))}>
             <div className="p-5">
               <div className="flex items-center gap-2 mb-3">
                 <span className={`inline-flex items-center gap-1 text-[9px] font-semibold px-2.5 py-0.5 rounded-full border ${TAG_COLORS[a.tag] || "border-white/10 text-white/40"}`}>

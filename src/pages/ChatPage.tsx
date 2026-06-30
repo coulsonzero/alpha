@@ -65,7 +65,13 @@ function defaultMessages(): Message[] {
   ];
 }
 
-const EMOJI_LIST = Array.from("😀😂😎🥳🤩😇😅😆🤗😍🤔👍🎉👋💪🙌✨🚀💯");
+const EMOJI_LIST = [
+  "😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇",
+  "🙂", "😉", "😍", "😘", "😋", "😎", "🤩", "🥳", "🤔", "🤗",
+  "👍", "👌", "👏", "🙌", "💪", "🙏", "🎉", "✨", "🔥", "🚀",
+  "🌩️", "🌨️", "🌧️", "🌦️", "🌥️", "🌤️", "⛈️", "⛅", "☁️", "🌍",
+  "🥉","🥈","🥇","🏅","🥬","🍇","🍉"
+];
 const AVATAR_GRADS = [
   "from-violet-500 to-cyan-400", "from-pink-500 to-violet-500",
   "from-cyan-400 to-blue-500", "from-emerald-400 to-cyan-400",
