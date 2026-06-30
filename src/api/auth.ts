@@ -1,6 +1,7 @@
 import request from './request'
 
 export function login(data: { username: string; password: string }) {
+  console.log("[API] login  username=", data.username)
   return request.post('/login', data)
 }
 

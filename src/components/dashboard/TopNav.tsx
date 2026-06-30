@@ -79,6 +79,8 @@ export const TopNav = () => {
     ? user.username.slice(0, 2).toUpperCase()
     : "AM";
 
+  console.log("[TopNav] user=", user ? `${user.username} (id:${user.id})` : user === null ? "not logged in" : "loading...");
+
   const isLoading = user === undefined;
   const avatarUrl = !avatarErr && user?.avatar ? resolveAvatar(user.avatar) : null;
 

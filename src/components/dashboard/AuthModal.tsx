@@ -41,7 +41,18 @@ export const AuthModal = ({ onClose, initialMode = "login", onAuthSuccess }: Aut
     try {
       if (mode === "login") {
         const res = await login({ username: username.trim(), password });
-        localStorage.setItem("token", res.data.data.token);
+        console.log("[AuthModal] login response:", JSON.stringify(res?.data));
+        // Backend wraps errors in { code: 400, message: "..." } with HTTP 200
+        if (res?.data?.code !== 200) {
+          toast.error(res?.data?.message || "Login failed");
+          return;
+        }
+        const token = res?.data?.data?.token;
+        if (!token) {
+          toast.error("Login failed: no token received");
+          return;
+        }
+        localStorage.setItem("token", token);
         toast.success("Signed in successfully");
         onAuthSuccess?.();
         onClose();

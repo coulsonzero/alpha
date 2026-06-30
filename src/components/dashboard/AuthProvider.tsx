@@ -36,11 +36,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshUser = useCallback(async () => {
     const token = localStorage.getItem("token");
+    console.log("[Auth] refreshUser  token=", token ? "present" : "none");
     if (!token) { setUser(null); return; }
     try {
       const res = await getMe();
+      console.log("[Auth] getMe response:", JSON.stringify(res?.data));
       setUser(res.data.data);
-    } catch {
+      console.log("[Auth] user set:", res?.data?.data?.username);
+    } catch (err) {
+      console.error("[Auth] getMe failed:", err);
       localStorage.removeItem("token");
       setUser(null);
     }
