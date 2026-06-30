@@ -297,9 +297,22 @@ export default function DocsPage() {
           <div className="px-6 py-4 border-b border-white/[0.03] flex items-center gap-4 shrink-0" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.02), transparent)" }}>
             {sel && (
               <button onClick={clearSelectedArticle}
-                className="w-8 h-8 rounded-full grid place-items-center transition-all duration-200 hover:scale-105 active:scale-95"
-                style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                <ArrowLeft size={14} className="text-white/80" />
+                className="group relative w-9 h-9 rounded-full grid place-items-center overflow-hidden transition-all duration-300 hover:-translate-x-0.5 active:scale-95 before:absolute before:inset-0 before:rounded-full before:bg-white/[0.025] before:opacity-0 before:transition-opacity before:duration-300 hover:before:opacity-100"
+                style={{
+                  background: "rgba(255,255,255,0.018)",
+                  border: "1px solid rgba(255,255,255,0.018)",
+                  backdropFilter: "blur(14px)",
+                  WebkitBackdropFilter: "blur(14px)",
+                  boxShadow: "none",
+                }}>
+                <span
+                  className="pointer-events-none absolute inset-0 rounded-full opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                  style={{
+                    background: "rgba(0,0,0,0.22)",
+                    boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.045), inset 0 1px 0 rgba(255,255,255,0.055)",
+                  }}
+                />
+                <ArrowLeft size={15} className="relative z-10 text-white/42 transition-all duration-300 group-hover:text-white/72 group-hover:-translate-x-0.5" />
               </button>
             )}
             <div className="flex-1">
