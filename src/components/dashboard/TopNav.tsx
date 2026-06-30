@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Bell, X } from "lucide-react";
+import { Bell, X, ChevronDown } from "lucide-react";
 import { VisitorCounter } from "./VisitorCounter";
 import { useAuth } from "./AuthProvider";
 import { resolveAvatar } from "@/lib/avatar";
@@ -111,19 +111,50 @@ export const TopNav = () => {
           <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-neon-cyan shadow-[0_0_10px_hsl(var(--neon-cyan))] animate-pulse" />
         </button>
 
-        {/* User avatar */}
+        {/* User profile pill */}
         <button
           ref={avatarRef}
-          className="w-11 h-11 rounded-[50%] grid place-items-center active:scale-[0.95] transition-transform overflow-hidden"
-          style={{ background: "rgba(255,255,255,0.04)", backdropFilter: "blur(32px)", border: "none" }}
+          className="group flex items-center gap-2.5 px-3 h-11 rounded-full transition-all duration-300 ease-out cursor-pointer overflow-hidden select-none"
+          style={{
+            background: "rgba(0,0,0,0.35)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06)",
+          }}
           onClick={() => setProfileOpen(!profileOpen)}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "rgba(0,0,0,0.5)";
+            e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "rgba(0,0,0,0.35)";
+            e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+          }}
         >
-          {isLoading ? null : avatarUrl ? (
-            <img src={avatarUrl} alt={user?.username} className="w-full h-full object-cover" onError={() => setAvatarErr(true)} />
-          ) : (
-            <div className="w-9 h-9 rounded-[50%] bg-gradient-to-br from-neon-pink via-neon-purple to-neon-blue grid place-items-center text-xs font-bold">
-              {initials}
-            </div>
+          {isLoading ? null : (
+            <>
+              {/* Avatar */}
+              <div className="w-7 h-7 rounded-full shrink-0 overflow-hidden bg-white/10">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={user?.username} className="w-full h-full object-cover" onError={() => setAvatarErr(true)} />
+                ) : (
+                  <div className="w-full h-full grid place-items-center text-[11px] font-semibold text-white/80 bg-gradient-to-br from-violet-500 to-indigo-500">
+                    {(user?.username || "?").charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
+              {/* Username */}
+              <span className="text-[13px] font-medium truncate max-w-[100px]" style={{ color: "rgba(255,255,255,0.9)" }}>
+                {user?.username || "Sign In"}
+              </span>
+              {/* Chevron */}
+              <ChevronDown
+                size={12}
+                className="shrink-0 transition-transform duration-300"
+                style={{ color: "rgba(255,255,255,0.5)", transform: profileOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+              />
+            </>
           )}
         </button>
       </div>
