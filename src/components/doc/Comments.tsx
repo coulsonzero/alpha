@@ -60,6 +60,8 @@ export const CommentsSection = ({
     });
 
   const toggleLike = (id: number) => {
+    console.log("[toggleLike] called  id=", id, " pending=", pendingLikesRef.current.has(id), " liked=", liked.has(id), " likedSize=", liked.size);
+
     // Guard against duplicate requests while a like/unlike is in flight
     if (pendingLikesRef.current.has(id)) return;
 
@@ -84,7 +86,6 @@ export const CommentsSection = ({
 
     likesComment(id, action)
       .then((res) => {
-        console.log(`[like] status=${res?.status}  data=`, res?.data, `  full=`, JSON.stringify(res?.data));
         const payload = res?.data?.data ?? res?.data ?? {};
         const serverLikes = payload.like_count ?? payload.likes ?? payload.likeCount ?? payload.count;
         if (typeof serverLikes === "number") {
@@ -95,15 +96,10 @@ export const CommentsSection = ({
             : serverLikes > currentLikes;   // like → count should increase
           if (movedCorrectly) {
             setComments(prev => updateLikeCount(prev, id, serverLikes));
-          } else {
-            console.warn(`[like] Server returned like_count=${serverLikes} but action=${action} (was ${currentLikes}). Keeping optimistic value.`);
           }
-        } else {
-          console.warn(`[like] No like_count in response. payload=`, payload, `res.data keys=`, res?.data ? Object.keys(res.data) : 'null');
         }
       })
       .catch((error) => {
-        console.error(`[like] POST /comment/${id}/likes  action=${action}  FAILED`, error);
         // Rollback on failure
         setLiked(p => {
           const n = new Set(p);
