@@ -1,11 +1,10 @@
 import request from './request'
 
-export function login(data: { username: string; password: string }) {
-  console.log("[API] login  username=", data.username)
+export function login(data) {
   return request.post('/login', data)
 }
 
-export function register(data: { username: string; password: string; email?: string } | FormData, isFormData?: boolean) {
+export function register(data, isFormData) {
   if (isFormData) {
     return request.post('/register', data, {
       headers: { 'Content-Type': 'multipart/form-data' },

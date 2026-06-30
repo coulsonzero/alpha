@@ -3,6 +3,7 @@ import { MessageCircle, Heart, Reply, Send, Smile } from "lucide-react";
 import { EmojiPop } from "@/components/doc/EmojiPop";
 import { MiniMd } from "@/components/doc/DocRenderer";
 import { createComment, likesComment } from "@/api/comment";
+import { useNotifications } from "@/components/dashboard/NotificationProvider";
 import { toast } from "sonner";
 import type { Comment } from "@/components/doc/docsData";
 
@@ -51,6 +52,7 @@ export const CommentsSection = ({
   liked, setLiked, showEmoji, setShowEmoji, showReplyEmoji, setShowReplyEmoji, commentEndRef, refreshComments, loggedInUser,
 }: CommentsSectionProps) => {
   const pendingLikesRef = useRef<Set<number>>(new Set());
+  const { push: pushNotification } = useNotifications();
 
   const updateLikeCount = (list: Comment[], targetId: number, nextLikes: number): Comment[] =>
     list.map((c) => {
@@ -60,8 +62,6 @@ export const CommentsSection = ({
     });
 
   const toggleLike = (id: number) => {
-    console.log("[toggleLike] called  id=", id, " pending=", pendingLikesRef.current.has(id), " liked=", liked.has(id), " likedSize=", liked.size);
-
     // Guard against duplicate requests while a like/unlike is in flight
     if (pendingLikesRef.current.has(id)) return;
 
@@ -96,6 +96,13 @@ export const CommentsSection = ({
             : serverLikes > currentLikes;   // like → count should increase
           if (movedCorrectly) {
             setComments(prev => updateLikeCount(prev, id, serverLikes));
+          }
+          // Notify on like (not unlike)
+          if (!isLiked) {
+            const author = comments.find((c) => getCommentId(c) === id)?.name
+              ?? comments.flatMap((c) => c.replies ?? []).find((r) => getCommentId(r) === id)?.name
+              ?? "comment";
+            pushNotification(`Liked ${author}'s comment`);
           }
         }
       })
@@ -159,6 +166,7 @@ export const CommentsSection = ({
         console.error("Failed to refresh comments after post:", error);
         toast.error(getErrorMessage(error, "Failed to refresh comments"));
       });
+      pushNotification(`New comment by ${form.name.trim()}`);
       toast.success("Comment posted");
     } catch (error) {
       console.error("Failed to post comment:", error);
@@ -190,6 +198,7 @@ export const CommentsSection = ({
         console.error("Failed to refresh comments after reply:", error);
         toast.error(getErrorMessage(error, "Failed to refresh comments"));
       });
+      pushNotification(`New reply by ${replyUsername.trim()}`);
       toast.success("Reply posted");
     } catch (error) {
       console.error("Failed to post reply:", error);

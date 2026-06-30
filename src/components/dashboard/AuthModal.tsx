@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { User, Lock, Loader2, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { login, register } from "@/api/auth";
+import { useNotifications } from "./NotificationProvider";
 
 interface AuthModalProps {
   onClose: () => void;
@@ -10,6 +11,7 @@ interface AuthModalProps {
 }
 
 export const AuthModal = ({ onClose, initialMode = "login", onAuthSuccess }: AuthModalProps) => {
+  const { push: pushNotification } = useNotifications();
   const [mode, setMode] = useState<"login" | "signup">(initialMode);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -41,8 +43,6 @@ export const AuthModal = ({ onClose, initialMode = "login", onAuthSuccess }: Aut
     try {
       if (mode === "login") {
         const res = await login({ username: username.trim(), password });
-        console.log("[AuthModal] login response:", JSON.stringify(res?.data));
-        // Backend wraps errors in { code: 400, message: "..." } with HTTP 200
         if (res?.data?.code !== 200) {
           toast.error(res?.data?.message || "Login failed");
           return;
@@ -68,6 +68,7 @@ export const AuthModal = ({ onClose, initialMode = "login", onAuthSuccess }: Aut
           await register({ username: username.trim(), password, email: email.trim() || undefined });
         }
         toast.success("Account created successfully");
+        pushNotification(`${username.trim()} registered`);
         setMode("login");
         setAvatar(null);
         setAvatarPreview(null);

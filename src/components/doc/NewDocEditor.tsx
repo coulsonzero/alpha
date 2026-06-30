@@ -3,6 +3,7 @@ import { Eye, Save, ChevronDown, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { renderMarkdown } from "@/components/doc/DocRenderer";
 import { saveDoc } from "@/api/doc";
+import { useNotifications } from "@/components/dashboard/NotificationProvider";
 
 const TAGS = [
   ["Frontend", "#a78bfa"],
@@ -100,6 +101,7 @@ const TitleDialog = ({ open, value, onChange, onSubmit, onCancel }: TitleDialogP
 
 /* ─── NewDocEditor ─── */
 export const NewDocEditor = ({ onClose, onSaved }: NewDocEditorProps) => {
+  const { push: pushNotification } = useNotifications();
   const [content, setContent] = useState("");
   const [preview, setPreview] = useState(false);
   const [tagOpen, setTagOpen] = useState(false);
@@ -128,6 +130,7 @@ export const NewDocEditor = ({ onClose, onSaved }: NewDocEditorProps) => {
     setSaving(true);
     try {
       await saveDoc({ tag: selectedTag!.toLowerCase(), title: finalTitle, content });
+      pushNotification(`New doc: ${finalTitle}`);
       toast.success("Document saved");
       setContent("");
       setPreview(false);

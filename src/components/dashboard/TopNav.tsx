@@ -3,14 +3,17 @@ import { createPortal } from "react-dom";
 import { Bell, X, ChevronDown } from "lucide-react";
 import { VisitorCounter } from "./VisitorCounter";
 import { useAuth } from "./AuthProvider";
+import { useNotifications } from "./NotificationProvider";
 import { resolveAvatar } from "@/lib/avatar";
 
-const notifications = [
-  { text: "New enterprise signup — Acme Industries", time: "2m ago", unread: true },
-  { text: "Payment received — $12,400 via Stripe", time: "14m ago", unread: true },
-  { text: "Your Pro plan is converting 2.4× faster", time: "1h ago", unread: false },
-  { text: "System update completed successfully", time: "3h ago", unread: false },
-];
+function formatRelativeTime(date: Date): string {
+  const diff = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
 
 export const TopNav = () => {
   const [notifOpen, setNotifOpen] = useState(false);
@@ -20,6 +23,7 @@ export const TopNav = () => {
   const bellRef = useRef<HTMLButtonElement>(null);
   const avatarRef = useRef<HTMLButtonElement>(null);
   const { user, openAuth, logout } = useAuth();
+  const { notifications, unreadCount, markAllRead } = useNotifications();
 
   const updateDropdownPos = useCallback(() => {
     if (bellRef.current) {
@@ -79,8 +83,6 @@ export const TopNav = () => {
     ? user.username.slice(0, 2).toUpperCase()
     : "AM";
 
-  console.log("[TopNav] user=", user ? `${user.username} (id:${user.id})` : user === null ? "not logged in" : "loading...");
-
   const isLoading = user === undefined;
   const avatarUrl = !avatarErr && user?.avatar ? resolveAvatar(user.avatar) : null;
 
@@ -107,10 +109,14 @@ export const TopNav = () => {
           ref={bellRef}
           className="w-11 h-11 rounded-[50%] grid place-items-center relative active:scale-[0.95] transition-transform"
           style={{ background: "rgba(255,255,255,0.04)", backdropFilter: "blur(32px)", border: "none" }}
-          onClick={() => setNotifOpen(!notifOpen)}
+          onClick={() => { setNotifOpen(!notifOpen); markAllRead(); }}
         >
           <Bell size={16} className="text-white/70" />
-          <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-neon-cyan shadow-[0_0_10px_hsl(var(--neon-cyan))] animate-pulse" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-neon-cyan text-[10px] font-bold text-black grid place-items-center px-1 shadow-[0_0_10px_hsl(var(--neon-cyan))]">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
         </button>
 
         {/* User profile pill */}
@@ -237,25 +243,29 @@ export const TopNav = () => {
                   <X size={12} />
                 </button>
               </div>
-              <div className="space-y-0.5">
-                {notifications.map((n, i) => (
-                  <button
-                    key={i}
-                    className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors flex items-start gap-3"
-                  >
-                    <span
-                      className={`mt-1 w-2 h-2 rounded-full shrink-0 ${
-                        n.unread
-                          ? "bg-neon-cyan shadow-[0_0_6px_hsl(var(--neon-cyan))]"
-                          : "bg-white/20"
-                      }`}
-                    />
-                    <div className="min-w-0">
-                      <p className="text-xs text-white/80 leading-relaxed">{n.text}</p>
-                      <p className="text-[10px] text-white/30 mt-0.5">{n.time}</p>
+              <div className="space-y-0.5 max-h-[320px] overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <p className="text-[11px] text-white/30 text-center py-6">No notifications yet</p>
+                ) : (
+                  notifications.map((n) => (
+                    <div
+                      key={n.id}
+                      className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors flex items-start gap-3"
+                    >
+                      <span
+                        className={`mt-1 w-2 h-2 rounded-full shrink-0 ${
+                          n.unread
+                            ? "bg-neon-cyan shadow-[0_0_6px_hsl(var(--neon-cyan))]"
+                            : "bg-white/20"
+                        }`}
+                      />
+                      <div className="min-w-0">
+                        <p className="text-xs text-white/80 leading-relaxed">{n.text}</p>
+                        <p className="text-[10px] text-white/30 mt-0.5">{formatRelativeTime(n.time)}</p>
+                      </div>
                     </div>
-                  </button>
-                ))}
+                  ))
+                )}
               </div>
               <div className="px-3 pt-2 pb-1 border-t border-white/5 mt-1">
                 <button className="text-[10px] text-neon-cyan hover:text-white transition-colors w-full text-center">

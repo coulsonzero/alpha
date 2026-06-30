@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { recordVisit, sendVisitHeartbeat } from "@/api/visitor";
 import { useAuth } from "./AuthProvider";
+import { useNotifications } from "./NotificationProvider";
 import { useLocation } from "react-router-dom";
 
 const VISITOR_ID_KEY = "visitor_id";
@@ -133,6 +134,7 @@ function heartbeatUrl() {
 export const VisitorTracker = () => {
   const location = useLocation();
   const { user } = useAuth();
+  const { push: pushNotification } = useNotifications();
   const username = user?.username;
   const profileRef = useRef<VisitorProfile>(readProfile() || {});
   const visitorIdRef = useRef<string>(getOrCreateVisitorId(username));
@@ -140,6 +142,7 @@ export const VisitorTracker = () => {
   const heartbeatRef = useRef<number | null>(null);
   const sentFirstRef = useRef(false);
   const prevUsernameRef = useRef<string | undefined>(username);
+  const notifSentRef = useRef(false);
 
   // When username changes (login / logout / switch account), refresh the
   // visitor_id and trigger a re-send so the backend updates user_name promptly.
@@ -153,6 +156,7 @@ export const VisitorTracker = () => {
       startAtRef.current = getStartTime(newId);
     }
     sentFirstRef.current = false;
+    notifSentRef.current = false;
   }, [username]);
 
   useEffect(() => {
@@ -168,6 +172,12 @@ export const VisitorTracker = () => {
       const location = data?.location ?? profileRef.current.location ?? "";
       profileRef.current = { ip, visitorId, country, city, location };
       writeProfile(profileRef.current);
+      // Push new-visitor notification once per session when location is first known
+      if (!notifSentRef.current && country) {
+        notifSentRef.current = true;
+        const loc = city && city !== country ? `${city}, ${country}` : country;
+        pushNotification(`New visitor from ${loc}`);
+      }
       // Notify VisitorCounter to re-read location data
       window.dispatchEvent(new CustomEvent("visitor-profile-updated"));
     };
