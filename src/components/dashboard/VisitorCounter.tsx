@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Eye, Users } from "lucide-react";
+import { Eye, Globe, Users } from "lucide-react";
 import { getVisitorStats, recordVisit } from "@/api/visitor";
 
 function formatCompact(n: number): string {
@@ -11,9 +11,16 @@ function formatCompact(n: number): string {
 export const VisitorCounter = () => {
   const [pv, setPv] = useState<number | null>(null);
   const [uv, setUv] = useState<number | null>(null);
+  const [ip, setIp] = useState<string | null>(null);
 
   useEffect(() => {
-    recordVisit().catch(() => {});
+    const readIp = (data: any) => data?.ip || data?.client_ip || data?.clientIp || data?.remote_ip || data?.remoteIp || null;
+
+    recordVisit().then((res) => {
+      const data = res.data?.data || {};
+      const nextIp = readIp(data);
+      if (nextIp) setIp(nextIp);
+    }).catch(() => {});
 
     const fetchStats = async () => {
       try {
@@ -21,12 +28,20 @@ export const VisitorCounter = () => {
         const d = res.data.data;
         setPv(d.total_pv);
         setUv(d.total_uv);
+        const nextIp = readIp(d);
+        if (nextIp) setIp(nextIp);
       } catch {
         /* ignore */
       }
     };
 
     fetchStats();
+    fetch("https://api.ipify.org?format=json")
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.ip) setIp(prev => prev || data.ip);
+      })
+      .catch(() => {});
     const interval = setInterval(fetchStats, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -34,16 +49,27 @@ export const VisitorCounter = () => {
   return (
     <div
       className="flex items-center gap-3 px-3.5 py-2 rounded-full"
-      style={{ background: "rgba(255,255,255,0.04)", backdropFilter: "blur(32px)" }}
+      style={{
+        background: "rgba(8,10,16,0.42)",
+        backdropFilter: "blur(24px) saturate(160%)",
+        WebkitBackdropFilter: "blur(24px) saturate(160%)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -12px 24px rgba(0,0,0,0.14), 0 14px 34px -22px rgba(0,0,0,0.85)",
+      }}
     >
       <div className="flex items-center gap-1.5">
-        <Eye size={12} className="text-neon-cyan" />
-        <span className="text-xs font-medium text-white/80 tabular-nums">{pv ?? "--"}</span>
+        <Eye size={12} className="text-white" />
+        <span className="text-xs font-medium text-white/80 tabular-nums">{pv === null ? "--" : formatCompact(pv)}</span>
       </div>
       <span className="text-white/15 text-[10px]">|</span>
       <div className="flex items-center gap-1.5">
-        <Users size={12} className="text-neon-cyan" />
-        <span className="text-xs font-medium text-white/80 tabular-nums">{uv ?? "--"}</span>
+        <Users size={12} className="text-white" />
+        <span className="text-xs font-medium text-white/80 tabular-nums">{uv === null ? "--" : formatCompact(uv)}</span>
+      </div>
+      <span className="text-white/15 text-[10px]">|</span>
+      <div className="flex items-center gap-1.5" title={ip ? `IP: ${ip}` : "IP address"}>
+        <Globe size={12} className="text-white" />
+        <span className="max-w-[96px] truncate text-xs font-medium text-white/70 tabular-nums">{ip ?? "--"}</span>
       </div>
     </div>
   );
