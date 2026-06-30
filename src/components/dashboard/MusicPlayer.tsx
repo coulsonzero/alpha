@@ -34,7 +34,13 @@ export const MusicPlayer = () => {
   const [duration, setDuration] = useState(0);
   const [showVolume, setShowVolume] = useState(false);
   const [showPlaylist, setShowPlaylist] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem("music-player-collapsed") === "1";
+    } catch {
+      return false;
+    }
+  });
   const [trackIdx, setTrackIdx] = useState(0);
 
   useEffect(() => {
@@ -43,6 +49,14 @@ export const MusicPlayer = () => {
       setPlaylist(Array.isArray(data) ? data : []);
     }).catch(() => {}).finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("music-player-collapsed", collapsed ? "1" : "0");
+    } catch {
+      /* ignore storage errors */
+    }
+  }, [collapsed]);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const playlistRef = useRef<Track[]>([]);

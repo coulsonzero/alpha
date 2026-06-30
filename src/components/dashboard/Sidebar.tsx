@@ -13,7 +13,7 @@ const items = [
   { icon: LayoutDashboard, label: "Overview" },
   { icon: BarChart3, label: "Analytics" },
   { icon: FileText, label: "Docs" },
-  { icon: Users, label: "Audience" },
+  { icon: Users, label: "User" },
   { icon: Sparkles, label: "AI Insights" },
   { icon: MessageSquare, label: "Messages" },
 ];
@@ -25,6 +25,7 @@ export const Sidebar = () => {
   const getActiveFromPath = () => {
     if (location.pathname === "/chat") return 5; // Messages
     if (location.pathname === "/docs") return 2; // Docs
+    if (location.pathname === "/user") return 3; // User
     return 0; // Overview (dashboard)
   };
 
@@ -40,6 +41,8 @@ export const Sidebar = () => {
       navigate("/chat");
     } else if (label === "Docs") {
       navigate("/docs");
+    } else if (label === "User") {
+      navigate("/user");
     } else if (location.pathname !== "/") {
       navigate("/");
     }

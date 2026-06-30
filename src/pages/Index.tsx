@@ -5,7 +5,6 @@ import { StatCards } from "@/components/dashboard/StatCards";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { RightCard } from "@/components/dashboard/RightCard";
 import { PerformanceWidgets } from "@/components/dashboard/PerformanceWidgets";
-import { UserTable } from "@/components/dashboard/UserTable";
 import { StockChart } from "@/components/dashboard/StockChart";
 import { Particles } from "@/components/dashboard/Particles";
 
@@ -46,8 +45,6 @@ const Index = () => {
 
           <RightCard />
         </div>
-
-        <UserTable className="mt-6" />
 
         <StockChart className="mt-6" />
 
