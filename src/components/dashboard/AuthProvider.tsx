@@ -17,14 +17,14 @@ interface User {
 interface AuthContextType {
   user: UserState;
   openAuth: (mode?: "login" | "signup") => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: undefined,
   openAuth: () => {},
-  logout: () => {},
+  logout: async () => {},
   refreshUser: async () => {},
 });
 
@@ -64,9 +64,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       value={{
         user,
         openAuth: (mode) => { setInitialMode(mode ?? "login"); setAuthOpen(true); },
-        logout: () => {
+        logout: async () => {
           const username = user?.username;
-          logoutApi().catch(() => {});
+          try {
+            await logoutApi();
+          } catch {
+            // Still clear local state even if the API call fails
+          }
           localStorage.removeItem("token");
           setUser(null);
           prevUserRef.current = null;
