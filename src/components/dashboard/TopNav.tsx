@@ -114,39 +114,39 @@ export const TopNav = () => {
         {/* User profile pill */}
         <button
           ref={avatarRef}
-          className="group flex items-center gap-2.5 px-3 h-11 rounded-full transition-all duration-300 ease-out cursor-pointer overflow-hidden select-none"
+          className="group flex items-center gap-3 px-2 h-12 rounded-full transition-all duration-300 ease-out cursor-pointer overflow-hidden select-none"
           style={{
-            background: "rgba(0,0,0,0.35)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            boxShadow: "0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06)",
+            background: "rgba(255,255,255,0.1)",
+            backdropFilter: "blur(24px)",
+            WebkitBackdropFilter: "blur(24px)",
+            border: "1px solid rgba(255,255,255,0.15)",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.12)",
           }}
           onClick={() => setProfileOpen(!profileOpen)}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(0,0,0,0.5)";
-            e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)";
+            e.currentTarget.style.background = "rgba(255,255,255,0.16)";
+            e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = "rgba(0,0,0,0.35)";
-            e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+            e.currentTarget.style.background = "rgba(255,255,255,0.1)";
+            e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
           }}
         >
           {isLoading ? null : (
             <>
               {/* Avatar */}
-              <div className="w-7 h-7 rounded-full shrink-0 overflow-hidden bg-white/10">
+              <div className="w-8 h-8 rounded-full shrink-0 overflow-hidden bg-white/10">
                 {avatarUrl ? (
                   <img src={avatarUrl} alt={user?.username} className="w-full h-full object-cover" onError={() => setAvatarErr(true)} />
                 ) : (
-                  <div className="w-full h-full grid place-items-center text-[11px] font-semibold text-white/80 bg-gradient-to-br from-violet-500 to-indigo-500">
+                  <div className="w-full h-full grid place-items-center text-xs font-semibold text-white/80 bg-gradient-to-br from-violet-500 to-indigo-500">
                     {(user?.username || "?").charAt(0).toUpperCase()}
                   </div>
                 )}
               </div>
               {/* Username */}
               <span className="text-[13px] font-medium truncate max-w-[100px]" style={{ color: "rgba(255,255,255,0.9)" }}>
-                {user?.username || "Sign In"}
+                {user?.username || "Guest"}
               </span>
               {/* Chevron */}
               <ChevronDown
