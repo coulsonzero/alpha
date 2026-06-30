@@ -17,6 +17,13 @@ interface Track {
   src: string;
 }
 
+const playerGlassStyle = {
+  background: "#ffffff24",
+  backdropFilter: "blur(32px) saturate(200%)",
+  WebkitBackdropFilter: "blur(32px) saturate(200%)",
+  border: "1px solid hsl(0 0% 100% / .22)",
+};
+
 export const MusicPlayer = () => {
   const [playlist, setPlaylist] = useState<Track[]>([]);
   const [loading, setLoading] = useState(true);
@@ -152,11 +159,10 @@ export const MusicPlayer = () => {
     return (
       <div style={{ position: "fixed", top: "32px", right: "150px", zIndex: 40, transform: "scale(0.9)", transition: "all 0.5s cubic-bezier(0.22, 1, 0.36, 1)" }}>
         <button onClick={() => setCollapsed(false)}
-          className="w-11 h-11 rounded-[50%] grid place-items-center"
+          className="w-11 h-11 grid place-items-center"
           style={{
-            background: "linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04))",
-            backdropFilter: "blur(48px) saturate(200%)",
-            border: "1px solid rgba(255,255,255,0.15)",
+            ...playerGlassStyle,
+            borderRadius: "3rem",
             boxShadow: "0 8px 24px -6px rgba(0,0,0,0.3)",
             transition: "all 0.5s cubic-bezier(0.22, 1, 0.36, 1)",
           }}>
@@ -176,7 +182,10 @@ export const MusicPlayer = () => {
 
   return (
     <div style={{ position: "fixed", left: "calc(50% - 230px)", top: "32px", zIndex: 40, transform: "scale(0.85)", transition: "all 0.5s cubic-bezier(0.22, 1, 0.36, 1)" }}>
-      <div className="glass-strong noise rounded-2xl px-5 py-2.5 flex items-center gap-5 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.7)]">
+      <div
+        className="noise px-5 py-2.5 flex items-center gap-5 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.7)]"
+        style={{ ...playerGlassStyle, borderRadius: "3rem" }}
+      >
         {/* Album art — click to collapse */}
         <button onClick={() => setCollapsed(true)} className="shrink-0 focus:outline-none">
           <div className="w-9 h-9 rounded-[50%]
