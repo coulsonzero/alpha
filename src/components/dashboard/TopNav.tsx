@@ -4,6 +4,7 @@ import { Bell, X, ChevronDown } from "lucide-react";
 import { VisitorCounter } from "./VisitorCounter";
 import { useAuth } from "./AuthProvider";
 import { useNotifications } from "./NotificationProvider";
+import { SettingsModal } from "./SettingsModal";
 import { resolveAvatar } from "@/lib/avatar";
 
 function formatRelativeTime(date: Date): string {
@@ -18,11 +19,12 @@ function formatRelativeTime(date: Date): string {
 export const TopNav = () => {
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 });
   const [profileDropdownPos, setProfileDropdownPos] = useState({ top: 0, right: 0 });
   const bellRef = useRef<HTMLButtonElement>(null);
   const avatarRef = useRef<HTMLButtonElement>(null);
-  const { user, openAuth, logout } = useAuth();
+  const { user, openAuth, logout, refreshUser } = useAuth();
   const { notifications, unreadCount, markAllRead } = useNotifications();
 
   const updateDropdownPos = useCallback(() => {
@@ -87,6 +89,7 @@ export const TopNav = () => {
   const avatarUrl = !avatarErr && user?.avatar ? resolveAvatar(user.avatar) : null;
 
   return (
+    <>
     <header className="flex items-center gap-4 mb-8 animate-fade-in">
       <div>
         <p className="text-xs text-white/40 font-medium tracking-widest uppercase">
@@ -109,7 +112,7 @@ export const TopNav = () => {
           ref={bellRef}
           className="w-11 h-11 rounded-[50%] grid place-items-center relative active:scale-[0.95] transition-transform"
           style={{ background: "rgba(255,255,255,0.04)", backdropFilter: "blur(32px)", border: "none" }}
-          onClick={() => { setNotifOpen(!notifOpen); markAllRead(); }}
+          onClick={() => setNotifOpen(!notifOpen)}
         >
           <Bell size={16} className="text-white/70" />
           {unreadCount > 0 && (
@@ -143,7 +146,7 @@ export const TopNav = () => {
           {isLoading ? null : (
             <>
               {/* Avatar */}
-              <div className="w-8 h-8 rounded-full shrink-0 overflow-hidden bg-white/10">
+              <div className="w-8 h-8 rounded-full shrink-0 overflow-hidden" style={{ background: "rgba(255,255,255,0.12)", backdropFilter: "blur(8px)" }}>
                 {avatarUrl ? (
                   <img src={avatarUrl} alt={user?.username} className="w-full h-full object-cover" onError={() => setAvatarErr(true)} />
                 ) : (
@@ -185,7 +188,10 @@ export const TopNav = () => {
                     <p className="text-xs font-medium text-white">{user.username}</p>
                     {user.email && <p className="text-[10px] text-white/40 truncate">{user.email}</p>}
                   </div>
-                  <button className="w-full text-left px-3 py-2.5 rounded-xl text-xs text-white/40 hover:bg-white/5 transition-colors">
+                  <button
+                    className="w-full text-left px-3 py-2.5 rounded-xl text-xs text-white/70 hover:bg-white/5 transition-colors"
+                    onClick={() => { setProfileOpen(false); setSettingsOpen(true); }}
+                  >
                     Settings
                   </button>
                   <button
@@ -209,10 +215,6 @@ export const TopNav = () => {
                   >
                     Sign Up
                   </button>
-                  <hr className="border-white/5 my-1" />
-                  <button className="w-full text-left px-3 py-2.5 rounded-xl text-xs text-white/40 hover:bg-white/5 transition-colors">
-                    Settings
-                  </button>
                 </>
               )}
             </div>
@@ -225,7 +227,7 @@ export const TopNav = () => {
         createPortal(
           <div className="fixed inset-0 z-[99999]">
             {/* Backdrop */}
-            <div className="absolute inset-0" onClick={() => setNotifOpen(false)} />
+            <div className="absolute inset-0" onClick={() => { setNotifOpen(false); markAllRead(); }} />
             {/* Dropdown */}
             <div
               className="absolute w-80 glass-strong rounded-2xl p-2 animate-dropdown-in overflow-hidden"
@@ -277,5 +279,15 @@ export const TopNav = () => {
           document.body,
         )}
     </header>
+
+      {/* Settings Modal */}
+      {settingsOpen && user && (
+        <SettingsModal
+          user={{ id: user.id, username: user.username, email: user.email, avatar: user.avatar }}
+          onClose={() => setSettingsOpen(false)}
+          onSaved={refreshUser}
+        />
+      )}
+    </>
   );
 };

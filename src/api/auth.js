@@ -20,3 +20,7 @@ export function getMe() {
 export function logout() {
   return request.post('/logout')
 }
+
+export function updateSettings(formData) {
+  return request.post('/setting_user', formData)
+}
