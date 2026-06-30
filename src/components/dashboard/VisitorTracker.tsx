@@ -12,6 +12,9 @@ const VISITOR_ACCOUNT_MAP_KEY = "visitor_account_map";
 type VisitorProfile = {
   ip?: string;
   visitorId?: string;
+  country?: string;
+  city?: string;
+  location?: string;
 };
 
 /* ─── localStorage helpers ─── */
@@ -160,8 +163,13 @@ export const VisitorTracker = () => {
       const data = response?.data?.data || response?.data || {};
       const ip = data?.ip || data?.client_ip || data?.clientIp || data?.remote_ip || data?.remoteIp || data?.visitor_ip || null;
       if (!ip) return;
-      profileRef.current = { ip, visitorId };
+      const country = data?.country ?? profileRef.current.country ?? "";
+      const city = data?.city ?? profileRef.current.city ?? "";
+      const location = data?.location ?? profileRef.current.location ?? "";
+      profileRef.current = { ip, visitorId, country, city, location };
       writeProfile(profileRef.current);
+      // Notify VisitorCounter to re-read location data
+      window.dispatchEvent(new CustomEvent("visitor-profile-updated"));
     };
 
     const sendVisit = async () => {
