@@ -194,7 +194,7 @@ export const VisitorTable = ({ className = "" }: VisitorTableProps) => {
 
   const total = serverPaging?.total ?? items.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const current = useMemo(() => items, [items]);
+  const current = useMemo(() => items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), [items, page]);
 
   useEffect(() => {
     setPage((p) => Math.min(p, totalPages));

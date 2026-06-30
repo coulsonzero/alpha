@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Eye, Globe, Users } from "lucide-react";
 import { getVisitorStats } from "@/api/visitor";
 
-const VISITOR_PROFILE_KEY = "visitor_profile";
+const VISITOR_ID_KEY = "visitor_id";
+const DEVICE_FINGERPRINT_KEY = "device_fingerprint";
 
 function formatCompact(n: number): string {
   if (n < 1000) return String(n);
@@ -10,18 +11,42 @@ function formatCompact(n: number): string {
   return (n / 10000).toFixed(1) + "w";
 }
 
-function readStoredLocation(): { country?: string; city?: string } {
+function getDeviceFingerprint(): string {
   try {
-    const raw = localStorage.getItem(VISITOR_PROFILE_KEY);
-    if (!raw) return {};
-    const profile = JSON.parse(raw);
-    return {
-      country: profile?.country || "",
-      city: profile?.city || "",
-    };
+    return [
+      navigator.userAgent,
+      navigator.language,
+      screen.width,
+      screen.height,
+      Intl.DateTimeFormat().resolvedOptions().timeZone,
+      navigator.platform,
+    ].join("|");
   } catch {
-    return {};
+    return navigator.userAgent || "unknown";
   }
+}
+
+function readFingerprint(): string {
+  const stored = localStorage.getItem(DEVICE_FINGERPRINT_KEY);
+  if (stored) return stored;
+  const fp = getDeviceFingerprint();
+  localStorage.setItem(DEVICE_FINGERPRINT_KEY, fp);
+  return fp;
+}
+
+function readVisitorId(): string {
+  return localStorage.getItem(VISITOR_ID_KEY) || "";
+}
+
+function formatLocation(data: any): string {
+  const country = data?.country || "";
+  const city = data?.city || "";
+  const ip = data?.ip || "";
+  if (country) {
+    return city && city !== country ? `${country} · ${city}` : country;
+  }
+  if (ip) return ip;
+  return "--";
 }
 
 export const VisitorCounter = () => {
@@ -32,14 +57,17 @@ export const VisitorCounter = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await getVisitorStats();
+        const res = await getVisitorStats({
+          visitor_id: readVisitorId(),
+          fingerprint: readFingerprint(),
+        });
         const d = res.data?.data || res.data || {};
-        setPv(Number(d.total_pv ?? d.pv ?? d.totalPv ?? 0));
-        setUv(Number(d.total_uv ?? d.uv ?? d.totalUv ?? 0));
-        // Refresh location from localStorage (updated by VisitorTracker)
-        const { country, city } = readStoredLocation();
-        if (country) {
-          setLocationLabel(city && city !== country ? `${country} · ${city}` : country);
+        setPv(Number(d.total_pv ?? d.pv ?? 0));
+        setUv(Number(d.total_uv ?? d.uv ?? 0));
+        // Use current_visitor from backend identification
+        const cv = d.current_visitor;
+        if (cv) {
+          setLocationLabel(formatLocation(cv));
         }
       } catch {
         /* ignore */
@@ -48,19 +76,7 @@ export const VisitorCounter = () => {
 
     fetchStats();
     const interval = setInterval(fetchStats, 30000);
-
-    // Listen for VisitorTracker profile updates (fires when /visit response arrives)
-    const onProfileUpdated = () => {
-      const { country, city } = readStoredLocation();
-      if (country) {
-        setLocationLabel(city && city !== country ? `${country} · ${city}` : country);
-      }
-    };
-    window.addEventListener("visitor-profile-updated", onProfileUpdated);
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener("visitor-profile-updated", onProfileUpdated);
-    };
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -74,7 +90,6 @@ export const VisitorCounter = () => {
         boxShadow: "0 2px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.1)",
       }}
     >
-      {/* PV — total visits */}
       <div className="flex items-center gap-1.5" title="Total Visits">
         <Eye size={12} className="text-white/60" />
         <span className="text-[11px] font-medium text-white/85 tabular-nums">
@@ -84,7 +99,6 @@ export const VisitorCounter = () => {
 
       <span className="text-white/10 text-[10px] select-none">|</span>
 
-      {/* UV — unique visitors */}
       <div className="flex items-center gap-1.5" title="Unique Visitors">
         <Users size={12} className="text-white/60" />
         <span className="text-[11px] font-medium text-white/85 tabular-nums">
@@ -94,7 +108,6 @@ export const VisitorCounter = () => {
 
       <span className="text-white/10 text-[10px] select-none">|</span>
 
-      {/* Country · City */}
       <div className="flex items-center gap-1.5" title={locationLabel}>
         <Globe size={12} className="text-white/60" />
         <span className="max-w-[130px] truncate text-[11px] font-medium text-white/70 tabular-nums">

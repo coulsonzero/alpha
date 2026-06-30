@@ -49,8 +49,8 @@ export const Sidebar = () => {
   };
 
   return (
-    <aside className="fixed left-4 top-[calc(50%-280px)] -translate-y-1/2 z-30 hidden lg:block animate-slide-left">
-      <div className="rounded-[1.5rem] p-2.5 flex flex-col items-center gap-[3px]" style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02))", backdropFilter: "blur(40px) saturate(160%)", boxShadow: "0 30px 80px -20px rgba(0, 0, 0, 0.8), inset 0 1px 0 0 rgba(255,255,255,0.1), inset 0 -1px 0 0 rgba(255,255,255,0.03)" }}>
+    <aside className="fixed left-4 top-[calc(50%-200px)] -translate-y-1/2 z-30 hidden lg:block animate-slide-left">
+      <div className="rounded-[2rem] p-2.5 flex flex-col items-center gap-[3px]" style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02))", backdropFilter: "blur(40px) saturate(160%)", boxShadow: "0 30px 80px -20px rgba(0, 0, 0, 0.8), inset 0 1px 0 0 rgba(255,255,255,0.1), inset 0 -1px 0 0 rgba(255,255,255,0.03)" }}>
         {/* Nav Items */}
         {items.map((it, i) => {
           const Icon = it.icon;

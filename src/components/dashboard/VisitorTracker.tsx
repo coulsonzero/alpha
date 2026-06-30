@@ -9,6 +9,30 @@ const VISITOR_START_KEY = "visitor_started_at";
 const VISITOR_PROFILE_KEY = "visitor_profile";
 const VISITOR_LINKED_USER_KEY = "visitor_linked_user";
 const VISITOR_ACCOUNT_MAP_KEY = "visitor_account_map";
+const DEVICE_FINGERPRINT_KEY = "device_fingerprint";
+
+function getDeviceFingerprint(): string {
+  try {
+    return [
+      navigator.userAgent,
+      navigator.language,
+      screen.width,
+      screen.height,
+      Intl.DateTimeFormat().resolvedOptions().timeZone,
+      navigator.platform,
+    ].join("|");
+  } catch {
+    return navigator.userAgent || "unknown";
+  }
+}
+
+function readDeviceFingerprint(): string {
+  const stored = localStorage.getItem(DEVICE_FINGERPRINT_KEY);
+  if (stored) return stored;
+  const fp = getDeviceFingerprint();
+  localStorage.setItem(DEVICE_FINGERPRINT_KEY, fp);
+  return fp;
+}
 
 type VisitorProfile = {
   ip?: string;
@@ -115,6 +139,7 @@ function buildPayload(visitorId: string, startAt: number, userName?: string) {
   const duration = Math.max(0, Math.floor((Date.now() - startAt) / 1000));
   return {
     visitor_id: visitorId,
+    device_fingerprint: readDeviceFingerprint(),
     duration,
     path: window.location.pathname,
     referrer: document.referrer || undefined,

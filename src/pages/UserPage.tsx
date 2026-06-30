@@ -2,6 +2,7 @@ import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopNav } from "@/components/dashboard/TopNav";
 import { UserTable } from "@/components/dashboard/UserTable";
 import { VisitorTable } from "@/components/dashboard/VisitorTable";
+import { DailyVisitorTable } from "@/components/dashboard/DailyVisitorTable";
 import { Particles } from "@/components/dashboard/Particles";
 
 export default function UserPage() {
@@ -18,6 +19,7 @@ export default function UserPage() {
         <div className="flex flex-col gap-6">
           <UserTable />
           <VisitorTable />
+          <DailyVisitorTable />
         </div>
       </main>
     </div>

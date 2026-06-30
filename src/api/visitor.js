@@ -8,8 +8,8 @@ export function sendVisitHeartbeat(data = {}) {
   return request.post("/visit/heartbeat", data)
 }
 
-export function getVisitorStats() {
-  return request.get("/visitor")
+export function getVisitorStats(params = {}) {
+  return request.get("/visitor", { params })
 }
 
 export async function getVisitors(params = {}) {
@@ -25,4 +25,12 @@ export async function getVisitors(params = {}) {
   }
 
   throw lastError
+}
+
+export function getVisitorDaily() {
+  return request.get("/visitor_daily")
+}
+
+export function getVisitorPvUv() {
+  return request.get("/visitor_pv_uv")
 }
