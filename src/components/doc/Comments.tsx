@@ -71,6 +71,42 @@ export const CommentsSection = ({
         <h3 className="text-sm font-semibold text-white/85">Comments</h3>
         <span className="text-[11px] text-white/25 ml-1">{comments.length}</span>
       </div>
+
+      {/* Comment Form */}
+      <div className="mb-8">
+        <div className="space-y-4">
+          <div className="flex gap-5">
+            <div className="flex-1 border-b border-white/[0.06] focus-within:border-blue-400/30 transition-colors">
+              <div className="flex items-center gap-2">
+                <input placeholder="Name" value={form.name} onChange={e => setForm(p => ({ ...p,name: e.target.value }))}
+                  className="w-full bg-transparent px-0 py-2 text-[12px] outline-none text-white/80 placeholder:text-white/15" />
+                <span className="text-[9px] text-white/20 font-light tracking-wide whitespace-nowrap">(Required)</span>
+              </div>
+            </div>
+            <div className="flex-1 border-b border-white/[0.06] focus-within:border-blue-400/30 transition-colors">
+              <input placeholder="Email" value={form.email} onChange={e => setForm(p => ({ ...p,email: e.target.value }))}
+                className="w-full bg-transparent px-0 py-2 text-[12px] outline-none text-white/80 placeholder:text-white/15" />
+            </div>
+            <div className="flex-1 border-b border-white/[0.06] focus-within:border-blue-400/30 transition-colors">
+              <input placeholder="Website" value={form.website} onChange={e => setForm(p => ({ ...p,website: e.target.value }))}
+                className="w-full bg-transparent px-0 py-2 text-[12px] outline-none text-white/80 placeholder:text-white/15" />
+            </div>
+          </div>
+          <div className="relative border-b border-white/[0.06] focus-within:border-blue-400/30 transition-colors">
+            <textarea placeholder="Write your comment... (Markdown supported)" value={form.content}
+              onChange={e => setForm(p => ({ ...p,content: e.target.value }))} rows={2}
+              className="w-full bg-transparent px-0 py-2 text-[12px] outline-none text-white/70 placeholder:text-white/15 resize-none pr-8" />
+            <button onClick={() => setShowEmoji(!showEmoji)}
+              className="absolute right-0 bottom-2.5 w-6 h-6 grid place-items-center text-white/20 hover:text-white/50 transition-all"><Smile size={14} /></button>
+            {showEmoji && <EmojiPop onSelect={e => setForm(p => ({ ...p,content: p.content + e }))} onClose={() => setShowEmoji(false)} />}
+          </div>
+          <div className="flex items-center justify-end pt-1">
+            <button onClick={pubComment}
+              className="px-5 py-2 rounded-xl text-[11px] font-medium text-white bg-gradient-to-r from-blue-500 to-violet-500 hover:shadow-[0_0_18px_rgba(76,201,240,0.25)] transition-all">Post Comment</button>
+          </div>
+        </div>
+      </div>
+
       <div className="space-y-6 mb-8">
         {comments.map(c => (
           <div key={c.id}>
@@ -142,41 +178,6 @@ export const CommentsSection = ({
             <div className="mt-6 border-b border-white/[0.04]" />
           </div>
         ))}
-      </div>
-
-      {/* Comment Form */}
-      <div className="pt-2">
-        <div className="space-y-4">
-          <div className="flex gap-5">
-            <div className="flex-1 border-b border-white/[0.06] focus-within:border-blue-400/30 transition-colors">
-              <div className="flex items-center gap-2">
-                <input placeholder="Name" value={form.name} onChange={e => setForm(p => ({ ...p,name: e.target.value }))}
-                  className="w-full bg-transparent px-0 py-2 text-[12px] outline-none text-white/80 placeholder:text-white/15" />
-                <span className="text-[9px] text-white/20 font-light tracking-wide whitespace-nowrap">(Required)</span>
-              </div>
-            </div>
-            <div className="flex-1 border-b border-white/[0.06] focus-within:border-blue-400/30 transition-colors">
-              <input placeholder="Email" value={form.email} onChange={e => setForm(p => ({ ...p,email: e.target.value }))}
-                className="w-full bg-transparent px-0 py-2 text-[12px] outline-none text-white/80 placeholder:text-white/15" />
-            </div>
-            <div className="flex-1 border-b border-white/[0.06] focus-within:border-blue-400/30 transition-colors">
-              <input placeholder="Website" value={form.website} onChange={e => setForm(p => ({ ...p,website: e.target.value }))}
-                className="w-full bg-transparent px-0 py-2 text-[12px] outline-none text-white/80 placeholder:text-white/15" />
-            </div>
-          </div>
-          <div className="relative border-b border-white/[0.06] focus-within:border-blue-400/30 transition-colors">
-            <textarea placeholder="Write your comment... (Markdown supported)" value={form.content}
-              onChange={e => setForm(p => ({ ...p,content: e.target.value }))} rows={2}
-              className="w-full bg-transparent px-0 py-2 text-[12px] outline-none text-white/70 placeholder:text-white/15 resize-none pr-8" />
-            <button onClick={() => setShowEmoji(!showEmoji)}
-              className="absolute right-0 bottom-2.5 w-6 h-6 grid place-items-center text-white/20 hover:text-white/50 transition-all"><Smile size={14} /></button>
-            {showEmoji && <EmojiPop onSelect={e => setForm(p => ({ ...p,content: p.content + e }))} onClose={() => setShowEmoji(false)} />}
-          </div>
-          <div className="flex items-center justify-end pt-1">
-            <button onClick={pubComment}
-              className="px-5 py-2 rounded-xl text-[11px] font-medium text-white bg-gradient-to-r from-blue-500 to-violet-500 hover:shadow-[0_0_18px_rgba(76,201,240,0.25)] transition-all">Post Comment</button>
-          </div>
-        </div>
       </div>
       <div ref={commentEndRef} />
     </div>
