@@ -101,10 +101,20 @@ export default function DocsPage() {
       time: createdAt ? formatDisplayTime(createdAt) : "Just now",
       content: item.content ?? "",
       likes: Number(item.like_count ?? item.likes ?? 0),
+      liked: Boolean(item.liked ?? item.is_liked ?? item.isLiked ?? false),
       parentId: item.parent_id ?? item.parentId ?? null,
       replies: (item.replies ?? []).map(normalizeComment),
     };
   }, [formatDisplayTime, getAvatarGradient, loggedInCommentUser]);
+
+  // Recursively collect IDs of comments the current user has liked
+  const collectLikedIds = (cmts: any[]): number[] =>
+    cmts.flatMap((c: any) => {
+      const id = Number(c.id ?? c._id ?? 0);
+      const ids: number[] = (c.liked || c.is_liked || c.isLiked) ? [id] : [];
+      if (c.replies?.length) ids.push(...collectLikedIds(c.replies));
+      return ids;
+    });
 
   const loadComments = async () => {
     try {
@@ -113,6 +123,8 @@ export default function DocsPage() {
       const list = Array.isArray(payload) ? payload : payload.list ?? payload.comments ?? [];
       setRawComments(list);
       setComments(list.map(normalizeComment));
+      // Only sync liked Set when fresh data arrives from server
+      setLiked(new Set(collectLikedIds(list)));
     } catch (error) {
       toast.error("Failed to load comments");
     }
@@ -122,6 +134,7 @@ export default function DocsPage() {
     loadComments();
   }, []);
 
+  // Re-normalize when formatting / user context changes (without touching liked Set)
   useEffect(() => {
     if (rawComments.length === 0) return;
     setComments(rawComments.map(normalizeComment));

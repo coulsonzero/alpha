@@ -6,23 +6,19 @@ import { useLocation } from "react-router-dom";
 const VISITOR_ID_KEY = "visitor_id";
 const VISITOR_START_KEY = "visitor_started_at";
 const VISITOR_PROFILE_KEY = "visitor_profile";
-
-function getVisitorBucket(userId: number | string | null | undefined) {
-  return userId ? `user:${userId}` : "guest";
-}
+const VISITOR_LINKED_USER_KEY = "visitor_linked_user";
+const VISITOR_ACCOUNT_MAP_KEY = "visitor_account_map";
 
 type VisitorProfile = {
   ip?: string;
   visitorId?: string;
 };
 
-function getProfileKey(bucket: string) {
-  return `${VISITOR_PROFILE_KEY}:${bucket}`;
-}
+/* ─── localStorage helpers ─── */
 
-function readProfile(bucket: string): VisitorProfile | null {
+function readProfile(): VisitorProfile | null {
   try {
-    const raw = localStorage.getItem(getProfileKey(bucket));
+    const raw = localStorage.getItem(VISITOR_PROFILE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object") return null;
@@ -32,42 +28,86 @@ function readProfile(bucket: string): VisitorProfile | null {
   }
 }
 
-function writeProfile(bucket: string, profile: VisitorProfile) {
+function writeProfile(profile: VisitorProfile) {
   try {
-    localStorage.setItem(getProfileKey(bucket), JSON.stringify(profile));
+    localStorage.setItem(VISITOR_PROFILE_KEY, JSON.stringify(profile));
+  } catch { /* ignore */ }
+}
+
+function readAccountMap(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(VISITOR_ACCOUNT_MAP_KEY);
+    return raw ? JSON.parse(raw) : {};
   } catch {
-    /* ignore storage errors */
+    return {};
   }
 }
 
-function getOrCreateVisitorId(bucket: string, ip?: string) {
-  const profile = readProfile(bucket);
-  if (ip && profile?.ip === ip && profile.visitorId) return profile.visitorId;
-
+function writeAccountMap(map: Record<string, string>) {
   try {
-    const existing = localStorage.getItem(`${VISITOR_ID_KEY}:${bucket}:${ip || "pending"}`);
-    if (existing) return existing;
-    const next = crypto.randomUUID();
-    localStorage.setItem(`${VISITOR_ID_KEY}:${bucket}:${ip || "pending"}`, next);
-    return next;
-  } catch {
-    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  }
+    localStorage.setItem(VISITOR_ACCOUNT_MAP_KEY, JSON.stringify(map));
+  } catch { /* ignore */ }
 }
 
-function getStartTime(bucket: string, visitorId: string) {
+/* ─── visitor ID strategy ───
+ *
+ *  Guest → Login (1st account)   : promote guest visitor_id → same record
+ *  Login → same account          : reuse persisted visitor_id
+ *  Login → different account     : new visitor_id → separate record
+ *  Guest (no prior login)        : create visitor_id, keep reusing it
+ */
+
+function getOrCreateVisitorId(username?: string): string {
+  const currentId = localStorage.getItem(VISITOR_ID_KEY);
+  const linkedUser = localStorage.getItem(VISITOR_LINKED_USER_KEY) || "";
+  const accountMap = readAccountMap();
+
+  if (username) {
+    // 1) Known account → reuse its persisted visitor_id
+    if (accountMap[username]) {
+      localStorage.setItem(VISITOR_ID_KEY, accountMap[username]);
+      localStorage.setItem(VISITOR_LINKED_USER_KEY, username);
+      return accountMap[username];
+    }
+
+    // 2) Current visitor_id is unlinked (guest session) → promote it
+    if (currentId && !linkedUser) {
+      accountMap[username] = currentId;
+      writeAccountMap(accountMap);
+      localStorage.setItem(VISITOR_LINKED_USER_KEY, username);
+      return currentId;
+    }
+
+    // 3) New / different account → fresh visitor_id
+    const newId = crypto.randomUUID();
+    accountMap[username] = newId;
+    writeAccountMap(accountMap);
+    localStorage.setItem(VISITOR_ID_KEY, newId);
+    localStorage.setItem(VISITOR_LINKED_USER_KEY, username);
+    return newId;
+  }
+
+  // Guest — reuse existing or create one
+  if (currentId) return currentId;
+  const newId = crypto.randomUUID();
+  localStorage.setItem(VISITOR_ID_KEY, newId);
+  return newId;
+}
+
+function getStartTime(visitorId: string) {
   try {
-    const saved = localStorage.getItem(`${VISITOR_START_KEY}:${bucket}:${visitorId}`);
+    const key = `${VISITOR_START_KEY}:${visitorId}`;
+    const saved = localStorage.getItem(key);
     if (saved) return Number(saved) || Date.now();
     const now = Date.now();
-    localStorage.setItem(`${VISITOR_START_KEY}:${bucket}:${visitorId}`, String(now));
+    localStorage.setItem(key, String(now));
     return now;
   } catch {
     return Date.now();
   }
 }
 
-function buildPayload(visitorId: string, startAt: number) {
+function buildPayload(visitorId: string, startAt: number, userName?: string) {
   const duration = Math.max(0, Math.floor((Date.now() - startAt) / 1000));
   return {
     visitor_id: visitorId,
@@ -76,6 +116,7 @@ function buildPayload(visitorId: string, startAt: number) {
     referrer: document.referrer || undefined,
     title: document.title || undefined,
     user_agent: navigator.userAgent,
+    user_name: userName || undefined,
   };
 }
 
@@ -84,23 +125,32 @@ function heartbeatUrl() {
   return `${base.replace(/\/$/, "")}/visit/heartbeat`;
 }
 
+/* ─── component ─── */
+
 export const VisitorTracker = () => {
   const location = useLocation();
   const { user } = useAuth();
-  const bucket = getVisitorBucket(user?.id);
-  const profileRef = useRef<VisitorProfile>(readProfile(bucket) || {});
-  const visitorIdRef = useRef<string>(getOrCreateVisitorId(bucket, profileRef.current.ip));
-  const startAtRef = useRef<number>(getStartTime(bucket, visitorIdRef.current));
+  const username = user?.username;
+  const profileRef = useRef<VisitorProfile>(readProfile() || {});
+  const visitorIdRef = useRef<string>(getOrCreateVisitorId(username));
+  const startAtRef = useRef<number>(getStartTime(visitorIdRef.current));
   const heartbeatRef = useRef<number | null>(null);
   const sentFirstRef = useRef(false);
+  const prevUsernameRef = useRef<string | undefined>(username);
 
+  // When username changes (login / logout / switch account), refresh the
+  // visitor_id and trigger a re-send so the backend updates user_name promptly.
   useEffect(() => {
-    const profile = readProfile(bucket) || {};
-    profileRef.current = profile;
-    visitorIdRef.current = getOrCreateVisitorId(bucket, profile.ip);
-    startAtRef.current = getStartTime(bucket, visitorIdRef.current);
+    if (prevUsernameRef.current === username) return;
+    prevUsernameRef.current = username;
+
+    const newId = getOrCreateVisitorId(username);
+    if (newId !== visitorIdRef.current) {
+      visitorIdRef.current = newId;
+      startAtRef.current = getStartTime(newId);
+    }
     sentFirstRef.current = false;
-  }, [bucket]);
+  }, [username]);
 
   useEffect(() => {
     const visitorId = visitorIdRef.current;
@@ -110,21 +160,16 @@ export const VisitorTracker = () => {
       const data = response?.data?.data || response?.data || {};
       const ip = data?.ip || data?.client_ip || data?.clientIp || data?.remote_ip || data?.remoteIp || data?.visitor_ip || null;
       if (!ip) return;
-      const nextVisitorId = getOrCreateVisitorId(bucket, ip);
-      if (nextVisitorId !== visitorIdRef.current) {
-        visitorIdRef.current = nextVisitorId;
-        startAtRef.current = getStartTime(bucket, nextVisitorId);
-      }
-      profileRef.current = { ip, visitorId: nextVisitorId };
-      writeProfile(bucket, profileRef.current);
+      profileRef.current = { ip, visitorId };
+      writeProfile(profileRef.current);
     };
 
     const sendVisit = async () => {
-      const res = await recordVisit(buildPayload(visitorId, startAt)).catch(() => null);
+      const res = await recordVisit(buildPayload(visitorId, startAt, username)).catch(() => null);
       if (res) applyServerProfile(res);
     };
     const sendHeartbeat = async () => {
-      const res = await sendVisitHeartbeat(buildPayload(visitorId, startAt)).catch(() => null);
+      const res = await sendVisitHeartbeat(buildPayload(visitorId, startAt, username)).catch(() => null);
       if (res) applyServerProfile(res);
     };
 
@@ -138,7 +183,7 @@ export const VisitorTracker = () => {
     const handlePageHide = () => {
       navigator.sendBeacon?.(
         heartbeatUrl(),
-        new Blob([JSON.stringify(buildPayload(visitorId, startAt))], { type: "application/json" }),
+        new Blob([JSON.stringify(buildPayload(visitorId, startAt, username))], { type: "application/json" }),
       );
     };
 
@@ -151,7 +196,7 @@ export const VisitorTracker = () => {
       window.removeEventListener("pagehide", handlePageHide);
       void sendHeartbeat();
     };
-  }, [location.pathname, bucket]);
+  }, [location.pathname, username]);
 
   return null;
 };

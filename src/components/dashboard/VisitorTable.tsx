@@ -129,7 +129,7 @@ const formatLocation = (visitor: Visitor) => {
 
 const isLiveStatus = (value: unknown) => {
   const status = String(value || "").toLowerCase();
-  return status === "active" || status === "online";
+  return status === "active";
 };
 
 const normalizeVisitor = (item: any): Visitor => ({
@@ -232,7 +232,7 @@ export const VisitorTable = ({ className = "" }: VisitorTableProps) => {
               {current.map((v, i) => (
                 <div
                   key={v.id ?? `${v.ip}-${i}`}
-                  className={`grid min-w-[980px] grid-cols-[1.5fr_0.8fr_1fr_1.25fr_1.2fr_0.8fr_0.9fr_0.8fr] gap-0 px-4 py-3 border-b border-white/[0.08] last:border-b-0 transition-colors ${isLiveStatus(v.status) ? "bg-emerald-400/20 hover:bg-emerald-400/28 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]" : "bg-white/[0.025] hover:bg-white/[0.04]"}`}
+                  className="grid min-w-[980px] grid-cols-[1.5fr_0.8fr_1fr_1.25fr_1.2fr_0.8fr_0.9fr_0.8fr] gap-0 px-4 py-3 border-b border-white/[0.08] last:border-b-0 transition-colors bg-white/[0.025] hover:bg-white/[0.04]"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className={`w-9 h-9 rounded-full shrink-0 bg-gradient-to-br ${getAvatarGradient(String(v.id ?? v.ip ?? i))} grid place-items-center text-[10px] font-bold overflow-hidden text-white`}>
@@ -254,14 +254,16 @@ export const VisitorTable = ({ className = "" }: VisitorTableProps) => {
                   <div className="text-xs text-white/50 truncate self-center">{formatDuration(v.duration)}</div>
                   <div className="text-xs text-white/50 truncate self-center">{formatLastSeen(v.last_seen)}</div>
                   <div className="self-center">
-                    <Badge
-                      variant="outline"
-                      className={`border-white/10 ${isLiveStatus(v.status) ? "bg-emerald-400/20 text-emerald-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.16)]" : "bg-white/5 text-white/70"}`}
-                      style={isLiveStatus(v.status) ? { backgroundColor: "rgba(74, 222, 128, 0.18)", color: "rgba(236, 253, 245, 0.98)" } : undefined}
+                    <span
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium border ${
+                        isLiveStatus(v.status)
+                          ? "border-emerald-400/25 bg-emerald-400/18 text-emerald-50"
+                          : "border-white/10 bg-white/5 text-white/70"
+                      }`}
                     >
-                      <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${isLiveStatus(v.status) ? "bg-emerald-300" : "bg-white/30"}`} />
-                      {v.status || "unknown"}
-                    </Badge>
+                      <i className={`inline-block h-1.5 w-1.5 rounded-full ${isLiveStatus(v.status) ? "bg-emerald-300" : "bg-white/30"}`} />
+                      {v.status}
+                    </span>
                   </div>
                 </div>
               ))}

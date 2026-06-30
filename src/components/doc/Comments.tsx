@@ -1,7 +1,8 @@
+import { useRef } from "react";
 import { MessageCircle, Heart, Reply, Send, Smile } from "lucide-react";
 import { EmojiPop } from "@/components/doc/EmojiPop";
 import { MiniMd } from "@/components/doc/DocRenderer";
-import { createComment } from "@/api/comment";
+import { createComment, likesComment } from "@/api/comment";
 import { toast } from "sonner";
 import type { Comment } from "@/components/doc/docsData";
 
@@ -20,6 +21,9 @@ const formatCommentTime = (date: Date) => {
 
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}${sign}${offsetHours}:${offsetRemainder}`;
 };
+
+const getCommentId = (comment: Comment) =>
+  Number(comment.id ?? (comment as any).comment_id ?? (comment as any).commentId ?? (comment as any).ID ?? 0);
 
 /* ─── Comments Section ─── */
 interface CommentsSectionProps {
@@ -46,19 +50,74 @@ export const CommentsSection = ({
   comments, setComments, form, setForm, replyTo, setReplyTo, replyText, setReplyText,
   liked, setLiked, showEmoji, setShowEmoji, showReplyEmoji, setShowReplyEmoji, commentEndRef, refreshComments, loggedInUser,
 }: CommentsSectionProps) => {
+  const pendingLikesRef = useRef<Set<number>>(new Set());
+
+  const updateLikeCount = (list: Comment[], targetId: number, nextLikes: number): Comment[] =>
+    list.map((c) => {
+      if (getCommentId(c) === targetId) return { ...c, likes: Math.max(0, nextLikes) };
+      if (c.replies?.length) return { ...c, replies: updateLikeCount(c.replies, targetId, nextLikes) };
+      return c;
+    });
 
   const toggleLike = (id: number) => {
+    // Guard against duplicate requests while a like/unlike is in flight
+    if (pendingLikesRef.current.has(id)) return;
+
     const isLiked = liked.has(id);
+    const currentLikes =
+      comments.find((c) => getCommentId(c) === id)?.likes ??
+      comments.flatMap((c) => c.replies ?? []).find((r) => getCommentId(r) === id)?.likes ??
+      0;
+    const optimisticLikes = Math.max(0, currentLikes + (isLiked ? -1 : 1));
+    const action = isLiked ? "unlikes" : "likes";
+
+    // Optimistic UI
     setLiked(p => {
       const n = new Set(p);
       if (n.has(id)) { n.delete(id); } else { n.add(id); }
       return n;
     });
-    setComments(prev => prev.map(c => {
-      if (c.id === id) return { ...c, likes: Math.max(0, c.likes + (isLiked ? -1 : 1)) };
-      if (c.replies) return { ...c, replies: c.replies.map(r => r.id === id ? { ...r, likes: Math.max(0, r.likes + (isLiked ? -1 : 1)) } : r) };
-      return c;
-    }));
+    setComments(prev => updateLikeCount(prev, id, optimisticLikes));
+
+    // Track in-flight request
+    pendingLikesRef.current = new Set([...pendingLikesRef.current, id]);
+
+    likesComment(id, action)
+      .then((res) => {
+        console.log(`[like] status=${res?.status}  data=`, res?.data, `  full=`, JSON.stringify(res?.data));
+        const payload = res?.data?.data ?? res?.data ?? {};
+        const serverLikes = payload.like_count ?? payload.likes ?? payload.likeCount ?? payload.count;
+        if (typeof serverLikes === "number") {
+          // Only accept server value if it moved in the expected direction,
+          // otherwise keep the optimistic count (server may have a bug).
+          const movedCorrectly = isLiked
+            ? serverLikes < currentLikes   // unlike → count should decrease
+            : serverLikes > currentLikes;   // like → count should increase
+          if (movedCorrectly) {
+            setComments(prev => updateLikeCount(prev, id, serverLikes));
+          } else {
+            console.warn(`[like] Server returned like_count=${serverLikes} but action=${action} (was ${currentLikes}). Keeping optimistic value.`);
+          }
+        } else {
+          console.warn(`[like] No like_count in response. payload=`, payload, `res.data keys=`, res?.data ? Object.keys(res.data) : 'null');
+        }
+      })
+      .catch((error) => {
+        console.error(`[like] POST /comment/${id}/likes  action=${action}  FAILED`, error);
+        // Rollback on failure
+        setLiked(p => {
+          const n = new Set(p);
+          if (isLiked) n.add(id); else n.delete(id);
+          return n;
+        });
+        setComments(prev => updateLikeCount(prev, id, currentLikes));
+        toast.error(getErrorMessage(error, "Failed to update reaction"));
+      })
+      .finally(() => {
+        const next = new Set(pendingLikesRef.current);
+        next.delete(id);
+        pendingLikesRef.current = next;
+      });
   };
 
   const makeCommentPayload = (
@@ -204,18 +263,26 @@ export const CommentsSection = ({
                     <span className="text-[10px] text-white/25">{c.time}</span>
                   </div>
                   <div className="text-[12px] text-white/60 leading-relaxed">{MiniMd(c.content)}</div>
-                  <div className="flex items-center gap-5 mt-2.5">
-                    <button onClick={() => toggleLike(c.id)}
-                      className="flex items-center gap-1.5 text-[11px] transition-all border-b border-transparent hover:border-white/20 pb-0.5" style={{ color: liked.has(c.id) ? "#fb7185" : "rgba(255,255,255,0.3)" }}>
-                      <Heart size={12} fill={liked.has(c.id) ? "#fb7185" : "none"} /> <span>{c.likes}</span>
+                  <div className=
+                    "flex items-center gap-5 mt-2.5">
+                    <button onClick={() => toggleLike(getCommentId(c))}
+                      className={`group relative flex items-center gap-1.5 text-[11px] transition-all duration-200 border border-transparent px-2 py-1 rounded-full overflow-hidden ${
+                        liked.has(getCommentId(c))
+                          ? "bg-rose-400/18 text-rose-100 shadow-[0_0_18px_rgba(251,113,133,0.24)] border-rose-400/25"
+                          : "bg-white/[0.03] text-white/40 hover:text-white/80 hover:bg-white/[0.06] hover:border-white/10"
+                      }`}
+                    >
+                      <span className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity ${liked.has(getCommentId(c)) ? "bg-gradient-to-r from-rose-400/28 to-fuchsia-400/14" : "bg-gradient-to-r from-white/5 to-white/0"}`} />
+                      <Heart size={12} fill={liked.has(getCommentId(c)) ? "#fb7185" : "none"} className={`relative z-10 transition-transform duration-200 ${liked.has(getCommentId(c)) ? "scale-110" : "group-hover:scale-105"}`} />
+                      <span className="relative z-10 tabular-nums">{c.likes}</span>
                     </button>
-                    <button onClick={() => setReplyTo(replyTo === c.id ? null : c.id)}
+                    <button onClick={() => setReplyTo(replyTo === getCommentId(c) ? null : getCommentId(c))}
                       className="flex items-center gap-1.5 text-white/30 hover:text-blue-400 transition-all text-[11px] border-b border-transparent hover:border-blue-400/30 pb-0.5"><Reply size={12} /> Reply</button>
                   </div>
                 </div>
               </div>
             </div>
-            {replyTo === c.id && (
+                  {replyTo === getCommentId(c) && (
               <div className="ml-11 mt-3 relative">
                 <div className="flex gap-2 animate-slide-up">
                   {!loggedInUser && (
@@ -223,14 +290,14 @@ export const CommentsSection = ({
                       className="w-28 border-b border-white/[0.08] bg-transparent px-0 py-2 text-[12px] outline-none text-white/70 placeholder:text-white/15 focus:border-blue-400/30 transition-colors" />
                   )}
                   <input placeholder="Write a reply..." value={replyText.content} onChange={e => setReplyText(p => ({ ...p,content: e.target.value }))}
-                    onKeyDown={e => e.key === "Enter" && pubReply(c.id)}
+                    onKeyDown={e => e.key === "Enter" && pubReply(getCommentId(c))}
                     className="flex-1 border-b border-white/[0.08] bg-transparent px-0 py-2 text-[12px] outline-none text-white/70 placeholder:text-white/15 focus:border-blue-400/30 transition-colors" />
-                  <button onClick={() => setShowReplyEmoji(showReplyEmoji === c.id ? null : c.id)}
+                  <button onClick={() => setShowReplyEmoji(showReplyEmoji === getCommentId(c) ? null : getCommentId(c))}
                     className="w-7 h-7 grid place-items-center text-white/25 hover:text-white/60 transition-all"><Smile size={14} /></button>
-                  <button onClick={() => pubReply(c.id)}
+                    <button onClick={() => pubReply(getCommentId(c))}
                     className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-violet-500 grid place-items-center shadow-lg hover:scale-105 transition-all"><Send size={12} /></button>
                 </div>
-                {showReplyEmoji === c.id && (
+                {showReplyEmoji === getCommentId(c) && (
                   <EmojiPop onSelect={e => setReplyText(p => ({ ...p,content: p.content + e }))} onClose={() => setShowReplyEmoji(null)} />
                 )}
               </div>
@@ -251,9 +318,14 @@ export const CommentsSection = ({
                         </div>
                         <p className="text-[11px] text-white/55 leading-relaxed">{r.content}</p>
                         <div className="flex items-center gap-3 mt-1">
-                          <button onClick={() => toggleLike(r.id)}
-                            className="flex items-center gap-1 text-[10px] border-b border-transparent hover:border-white/20 pb-0.5 transition-all" style={{ color: liked.has(r.id) ? "#fb7185" : "rgba(255,255,255,0.25)" }}>
-                            <Heart size={10} fill={liked.has(r.id) ? "#fb7185" : "none"} /> {r.likes}
+                    <button onClick={() => toggleLike(getCommentId(r))}
+                            className={`group relative flex items-center gap-1 text-[10px] transition-all duration-200 border border-transparent px-2 py-1 rounded-full overflow-hidden ${
+                              liked.has(getCommentId(r))
+                                ? "bg-rose-400/18 text-rose-100 shadow-[0_0_14px_rgba(251,113,133,0.24)] border-rose-400/25"
+                                : "bg-white/[0.025] text-white/35 hover:text-white/75 hover:bg-white/[0.05] hover:border-white/10"
+                            }`}>
+                            <span className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity ${liked.has(getCommentId(r)) ? "bg-gradient-to-r from-rose-400/28 to-fuchsia-400/12" : "bg-gradient-to-r from-white/5 to-white/0"}`} />
+                            <Heart size={10} fill={liked.has(getCommentId(r)) ? "#fb7185" : "none"} className={`relative z-10 transition-transform duration-200 ${liked.has(getCommentId(r)) ? "scale-110" : "group-hover:scale-105"}`} /> <span className="relative z-10 tabular-nums">{r.likes}</span>
                           </button>
                         </div>
                       </div>

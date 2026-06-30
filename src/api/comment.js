@@ -11,3 +11,12 @@ export function createComment(data) {
     },
   })
 }
+
+export async function likesComment(id, action) {
+  console.log(`[API] likesComment  id=${id}  action=${action}  url=/comment/${id}/likes`)
+  return request.post(`/comment/${id}/likes`, { action }, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+}
