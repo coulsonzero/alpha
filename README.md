@@ -4,6 +4,45 @@ TODO: Document your project here
 
 ## 前端部署
 
+### cloudflared
+
+```sh
+# 1. 安装 + 登录
+brew install cloudflared
+cloudflared tunnel login
+
+# 2. 创建隧道
+cloudflared tunnel create alpha
+# 输出: Created tunnel alpha with id xxxxxxxx-xxxx-...
+
+# 3. 绑定你的域名
+cloudflared tunnel route dns alpha alpha.coulsonzero.shop
+
+# 4. 启动（一条命令，指向前端端口）
+cloudflared tunnel run alpha --url http://localhost:5000
+```
+然后 https://alpha.coulsonzero.shop 就能外网访问了
+
+### ngrok
+```sh
+# 安装
+brew install ngrok
+
+# 暴露前端
+ngrok http 5000
+
+# 另开终端，暴露后端
+ngrok http 8000
+
+# 会生成公网地址如 https://abc123.ngrok.io。然后改 .env 指向这个后端地址。
+# 装 ngrok，添加你的域名
+ngrok http 5000 --domain=dev.coulsonzero.shop
+
+# 前提是在 ngrok 后台添加一个自定义域名（免费版允许 1 个）。或者直接用随机 URL，每次分享给同事就行：
+
+ngrok http 5000  # 最简，零配置
+```
+
 ### 外网项目部署（最终方案）
 澄清一下这几个 IP 的区别：
 

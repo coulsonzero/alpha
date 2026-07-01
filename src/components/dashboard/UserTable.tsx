@@ -77,27 +77,27 @@ export const UserTable = ({ className = "" }: UserTableProps) => {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-[1.5fr_1.25fr_1fr_0.8fr] gap-0 px-4 pb-3 text-[10px] font-semibold tracking-wider uppercase text-white/30">
+            <div className="grid grid-cols-[1.2fr_1.25fr_1fr_0.8fr] gap-0 px-4 pb-3 text-[10px] font-semibold tracking-wider uppercase text-white/30">
               <div>Name</div>
-              <div>Email</div>
-              <div>Website</div>
-              <div>Status</div>
+              <div className="text-center">Email</div>
+              <div className="text-center">Website</div>
+              <div className="text-center">Status</div>
             </div>
             <div className="overflow-hidden rounded-[1.75rem] border border-white/[0.08]">
               {current.map((u, i) => (
                 <div
                   key={u.email || i}
-                  className={`grid grid-cols-[1.5fr_1.25fr_1fr_0.8fr] gap-0 px-4 py-3 border-b border-white/[0.08] last:border-b-0 transition-colors ${String(u.status || "").toLowerCase() === "active" ? "bg-emerald-400/10 hover:bg-emerald-400/14" : "bg-white/[0.025] hover:bg-white/[0.04]"}`}
+                  className={`grid grid-cols-[1.2fr_1.25fr_1fr_0.8fr] gap-0 px-4 py-3 border-b border-white/[0.08] last:border-b-0 transition-colors ${String(u.status || "").toLowerCase() === "active" ? "bg-emerald-400/10 hover:bg-emerald-400/14" : "bg-white/[0.025] hover:bg-white/[0.04]"}`}
                 >
-                  <div className="flex items-center gap-3 min-w-0 pr-3">
+                  <div className="flex items-center gap-3 min-w-0">
                     <div className="w-8 h-8 rounded-full shrink-0 bg-gradient-to-br from-neon-pink via-neon-purple to-neon-blue grid place-items-center text-[10px] font-bold overflow-hidden">
                       {resolveAvatar(u.avatar) ? <img src={resolveAvatar(u.avatar)!} alt="" className="w-full h-full object-cover" /> : (u.username || "?").charAt(0).toUpperCase()}
                     </div>
-                    <p className="text-xs font-semibold truncate leading-5">{u.username || "Unknown"}</p>
+                    <p className="text-xs font-semibold truncate">{u.username || "Unknown"}</p>
                   </div>
-                  <div className="text-xs text-white/50 truncate pr-3 leading-5">{u.email || "—"}</div>
-                  <div className="text-xs text-white/50 truncate pr-3 leading-5">{u.website || "—"}</div>
-                  <div className="flex items-center">
+                  <div className="text-xs text-white/50 truncate self-center text-center">{u.email || "—"}</div>
+                  <div className="text-xs text-white/50 truncate self-center text-center">{u.website || "—"}</div>
+                  <div className="self-center flex justify-center">
                     <Badge
                       variant="outline"
                       className={`border-white/10 ${String(u.status || "").toLowerCase() === "active" ? "bg-emerald-400/15 text-emerald-200" : "bg-white/5 text-white/70"}`}

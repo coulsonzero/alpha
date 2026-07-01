@@ -225,16 +225,16 @@ export const VisitorTable = ({ className = "" }: VisitorTableProps) => {
           </div>
         ) : (
           <>
-            <div className="grid min-w-[980px] grid-cols-[1.5fr_0.8fr_1fr_1.25fr_1.2fr_0.8fr_0.9fr_0.8fr] gap-0 px-4 pb-3 text-[10px] font-semibold tracking-wider uppercase text-white/30">
-              <div>User</div><div>Visitor ID</div><div>IP</div><div>Location</div><div>Device · Browser</div><div>Duration</div><div>Last Seen</div><div>Status</div>
+            <div className="grid min-w-[980px] grid-cols-[1.2fr_0.8fr_1fr_1.25fr_1.2fr_0.8fr_0.9fr_0.8fr] gap-0 px-4 pb-3 text-[10px] font-semibold tracking-wider uppercase text-white/30">
+              <div>User</div><div className="text-center">Visitor ID</div><div className="text-center">IP</div><div className="text-center">Location</div><div className="text-center">Device · Browser</div><div className="text-center">Duration</div><div className="text-center">Last Seen</div><div className="text-center">Status</div>
             </div>
             <div className="overflow-hidden rounded-[1.75rem] border border-white/[0.08]">
               {current.map((v, i) => (
                 <div
                   key={v.id ?? `${v.ip}-${i}`}
-                  className="grid min-w-[980px] grid-cols-[1.5fr_0.8fr_1fr_1.25fr_1.2fr_0.8fr_0.9fr_0.8fr] gap-0 px-4 py-3 border-b border-white/[0.08] last:border-b-0 transition-colors bg-white/[0.025] hover:bg-white/[0.04]"
+                  className="grid min-w-[980px] grid-cols-[1.2fr_0.8fr_1fr_1.25fr_1.2fr_0.8fr_0.9fr_0.8fr] gap-0 px-4 py-3 border-b border-white/[0.08] last:border-b-0 transition-colors bg-white/[0.025] hover:bg-white/[0.04]"
                 >
-                  <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex items-center gap-3 min-w-0 self-center">
                     <div className={`w-9 h-9 rounded-full shrink-0 bg-gradient-to-br ${getAvatarGradient(String(v.id ?? v.ip ?? i))} grid place-items-center text-[10px] font-bold overflow-hidden text-white`}>
                       {resolveAvatar(v.avatar) ? (
                         <img src={resolveAvatar(v.avatar)!} alt="" className="h-full w-full object-cover" />
@@ -247,13 +247,13 @@ export const VisitorTable = ({ className = "" }: VisitorTableProps) => {
                       <p className="text-[10px] text-white/30 truncate">{v.avatar ? "Signed visitor" : "Anonymous"}</p>
                     </div>
                   </div>
-                  <div className="text-xs text-white/50 truncate self-center">{shortId(v.id)}</div>
-                  <div className="text-xs text-white/50 truncate self-center">{v.ip || "—"}</div>
-                  <div className="text-xs text-white/50 truncate self-center">{formatLocation(v)}</div>
-                  <div className="text-xs text-white/50 truncate self-center">{v.device || "—"} · {v.browser || "—"}</div>
-                  <div className="text-xs text-white/50 truncate self-center">{formatDuration(v.duration)}</div>
-                  <div className="text-xs text-white/50 truncate self-center">{formatLastSeen(v.last_seen)}</div>
-                  <div className="self-center">
+                  <div className="text-xs text-white/50 truncate self-center text-center">{shortId(v.id)}</div>
+                  <div className="text-xs text-white/50 truncate self-center text-center">{v.ip || "—"}</div>
+                  <div className="text-xs text-white/50 truncate self-center text-center">{formatLocation(v)}</div>
+                  <div className="text-xs text-white/50 truncate self-center text-center">{v.device || "—"} · {v.browser || "—"}</div>
+                  <div className="text-xs text-white/50 truncate self-center text-center">{formatDuration(v.duration)}</div>
+                  <div className="text-xs text-white/50 truncate self-center text-center">{formatLastSeen(v.last_seen)}</div>
+                  <div className="self-center flex justify-center">
                     <span
                       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium border ${
                         isLiveStatus(v.status)
