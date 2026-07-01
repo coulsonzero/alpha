@@ -9,9 +9,18 @@ TODO: Document your project here
 ```sh
 # 1. 安装 + 登录
 brew install cloudflared
-cloudflared tunnel login
+# Cloudflare Tunnel 免费且支持自定义域名。之前 cert 问题最简单绕过方式——用 API Token 登录：
 
-# 2. 创建隧道
+# 1. Cloudflare 控制台 → 我的个人资料 → API Tokens → 创建令牌
+#    选 "编辑 Cloudflare Workers" 模板
+#    权限选: 账户 > Cloudflare Tunnel > 编辑
+#    区域: 你的域名
+
+# 2. 用 token 登录（不需要 cert.pem）
+cloudflared tunnel login --token YOUR_API_TOKEN
+
+
+# 3. 创建隧道
 cloudflared tunnel create alpha
 # 输出: Created tunnel alpha with id xxxxxxxx-xxxx-...
 
@@ -25,14 +34,21 @@ cloudflared tunnel run alpha --url http://localhost:5000
 
 ### ngrok
 ```sh
-# 安装
+# 1.安装
 brew install ngrok
 
-# 暴露前端
+# 2. 注册获取 token（免费，去 ngrok.com 注册）
+# 登录后 https://dashboard.ngrok.com/get-started/your-authtoken 复制 token
+
+# 3. 配置 token
+ngrok config add-authtoken YOUR_TOKEN
+
+# 4.暴露前端
 ngrok http 5000
 
 # 另开终端，暴露后端
 ngrok http 8000
+
 
 # 会生成公网地址如 https://abc123.ngrok.io。然后改 .env 指向这个后端地址。
 # 装 ngrok，添加你的域名
