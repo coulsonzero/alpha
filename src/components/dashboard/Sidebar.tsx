@@ -15,7 +15,7 @@ const items = [
   { icon: FileText, label: "Docs" },
   { icon: Users, label: "User" },
   { icon: Sparkles, label: "AI Insights" },
-  { icon: MessageSquare, label: "Messages" },
+  { icon: MessageSquare, label: "Chat" },
 ];
 
 export const Sidebar = () => {
@@ -37,7 +37,7 @@ export const Sidebar = () => {
 
   const handleClick = (index: number, label: string) => {
     setActive(index);
-    if (label === "Messages") {
+    if (label === "Chat") {
       navigate("/chat");
     } else if (label === "Docs") {
       navigate("/docs");
