@@ -2,7 +2,7 @@ import axios from 'axios'
 
 const request = axios.create({
   // baseURL: import.meta.env.VITE_API_BASE_URL,
-  baseURL: 'http://localhost:5000/api/v1',
+  baseURL: 'http://localhost:8080/api/v1',
   timeout: 5000,
   withCredentials: true,
 })
