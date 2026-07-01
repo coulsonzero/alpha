@@ -107,18 +107,36 @@ export const DailyVisitorTable = ({ className = "" }: { className?: string }) =>
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  className="h-8 w-8 rounded-full grid place-items-center text-white/40 hover:text-white/80 disabled:text-white/15 transition-colors"
+                  className="h-8 w-8 rounded-full grid place-items-center transition-all duration-200 disabled:opacity-25 disabled:cursor-not-allowed"
+                  style={{
+                    background: "rgba(255,255,255,0.08)",
+                    backdropFilter: "blur(12px)",
+                    WebkitBackdropFilter: "blur(12px)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    boxShadow: "0 2px 8px rgba(255,255,255,0.06)",
+                  }}
                   disabled={page === 1}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.14)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; }}
                 >
-                  ‹
+                  <span style={{ color: page === 1 ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.6)" }}>‹</span>
                 </button>
                 <button
-                  className="h-8 w-8 rounded-full grid place-items-center text-white/40 hover:text-white/80 disabled:text-white/15 transition-colors"
+                  className="h-8 w-8 rounded-full grid place-items-center transition-all duration-200 disabled:opacity-25 disabled:cursor-not-allowed"
+                  style={{
+                    background: "rgba(255,255,255,0.08)",
+                    backdropFilter: "blur(12px)",
+                    WebkitBackdropFilter: "blur(12px)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    boxShadow: "0 2px 8px rgba(255,255,255,0.06)",
+                  }}
                   disabled={page === totalPages}
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.14)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; }}
                 >
-                  ›
+                  <span style={{ color: page === totalPages ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.6)" }}>›</span>
                 </button>
               </div>
             </div>
